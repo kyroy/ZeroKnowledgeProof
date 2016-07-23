@@ -8,6 +8,17 @@ header, main, footer {
   }
 }
 
+.active {
+  background-color: gray !important;
+  color: white !important;
+}
+
+/* mini nav */
+
+.mininav, .mininav nav {
+  height: 20px;
+  line-height: 20px;
+}
 
 /* BEGIN enlarge graph */
 body, div#view {

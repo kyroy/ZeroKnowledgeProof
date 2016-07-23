@@ -84,12 +84,31 @@ contract TaskPool {
         return data;
     }
 
+    function getAccountTaskIds(address account) constant returns (bytes32[]) {
+        var counter = 0;
+        for (var t = tasksOfAccount[account].head; t != 0; t = tasksOfAccount[account].list[t]) {
+            counter++;
+        }
+        if (counter > 10) counter = 10; // TODO remove
+        bytes32[] memory data = new bytes32[](counter);
+        var currentTask = tasksOfAccount[account].head;
+        for (var i = 0; i < counter; i++) {
+            data[i] = currentTask;
+            currentTask = tasksOfAccount[account].list[currentTask];
+        }
+        return data;
+    }
+
     function getOwner (bytes32 taskId) constant returns (address) {
         return tasks[taskId].owner;
     }
 
     function getReward (bytes32 taskId) constant returns (uint) {
         return tasks[taskId].reward;
+    }
+
+    function isSolved (bytes32 taskId) constant returns (bool) {
+        return tasks[taskId].solved;
     }
 
     function balance() constant returns (uint) {

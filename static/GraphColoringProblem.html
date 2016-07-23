@@ -1,14 +1,30 @@
 <header>
+  <div class="navbar-fixed mininav">
+    <nav>
+      <div class="nav-wrapper">
+        <ul>
+          <li>balance: {{graphCtrl.balance}} ether</li>
+        </ul>
+      </div>
+    </nav>
+  </div>
   <nav>
     <ul id="slide-out" class="side-nav fixed">
-      <li data-ng-show="graphCtrl.unsolvedTasks.length === 0"><a href="">Sorry. No unsolved tasks found.</a></li>
-      <li data-ng-repeat="task in graphCtrl.unsolvedTasks">
-        <a href="" data-ng-click="graphCtrl.setGraph(task)">{{task}}</a>
+      <li><a href="" data-ng-click="graphCtrl.insertStubData()" style="background-color: lightblue;">Add Random Graph</a></li>
+      <li data-ng-show="graphCtrl.graphs.taskIds.length === 0"><a href="">No tasks found.</a></li>
+      <li data-ng-repeat="taskId in graphCtrl.graphs.taskIds">
+        <a href="" data-ng-href="#/{{taskId}}" data-ng-class="{ active: graphCtrl.currentTaskId === taskId }">{{taskId}}</a>
       </li>
     </ul>
     <div class="nav-wrapper">
       <a href="#" data-activates="slide-out" class="button-collapse"><i class="mdi-navigation-menu"></i>ASDF</a>
-      <a href="#" class="brand-logo">Graph Coloring Problem</a>
+      <a href="#" class="brand-logo truncate" style="width: 50%;">Graph Coloring Problem {{graphCtrl.currentTaskId}}</a>
+      <ul id="nav-mobile" class="right hide-on-med-and-down">
+        <li data-ng-show="graphCrtl.currentTaskId !== 0 && !graphCtrl.editSolution"><a href="" data-ng-click="graphCtrl.editSolution = true">Propose Solution</a></li>
+        <li data-ng-show="graphCrtl.currentTaskId !== 0 && graphCtrl.editSolution"><a href="" data-ng-click="graphCtrl.proposeSolution()">Send Solution</a></li>
+        <li data-ng-show="graphCtrl.isOwner(graphCtrl.currentTaskId)"><a href="" data-ng-click="graphCtrl.acceptSolution()">Accept Solution</a></li>
+        <li data-ng-show="graphCtrl.isOwner(graphCtrl.currentTaskId)"><a href="" data-ng-click="graphCtrl.rejectSolution()">Reject Solution</a></li>
+      </ul>
     </div>
   </nav>
 </header>

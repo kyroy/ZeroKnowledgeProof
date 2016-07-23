@@ -32,6 +32,13 @@ contract GraphColoringProblem is TaskPool {
 
     mapping (bytes32 => Graph) graphs;
 
+    event SolutionProposed(bytes32 indexed taskId, address indexed proposer, bytes32[] hashes);
+    event SolutionRequestedEdge(bytes32 indexed taskId, uint edge);
+    event SolutionSubmittedColors(bytes32 indexed taskId, uint color1, uint nonce1, uint color2, uint nonce2);
+    event SolutionAccepted(bytes32 indexed taskId, address proposer);
+    event SolutionRejected(bytes32 indexed taskId, address proposer);
+    event SolutionDelivered(bytes32 indexed taskId, uint[] colors);
+
     function createGraph (uint numVertices, bool[] edges) public {
         bytes32 taskId = TaskPool.createTask();
         if (edges.length != numVertices * numVertices) {
@@ -42,8 +49,6 @@ contract GraphColoringProblem is TaskPool {
         }
         graphs[taskId].edges = edges;
     }
-
-    event SolutionProposed(bytes32 indexed taskId, address indexed proposer, bytes32[] hashes);
 
     function proposeSolution (bytes32 taskId, bytes32[] hashes) public notSolved(taskId) {
         var solution = graphs[taskId].solution;
@@ -62,8 +67,6 @@ contract GraphColoringProblem is TaskPool {
         SolutionProposed(taskId, solution.proposer, solution.colorHashes);
     }
 
-    event SolutionRequestedEdge(bytes32 indexed taskId, uint edge);
-
     function requestEdge (bytes32 taskId, uint edge) public notSolved(taskId) isOwner(taskId) {
         var solution = graphs[taskId].solution;
         if (solution.status != SolutionStatus.Pending || solution.requestedEdge != 0) {
@@ -72,11 +75,13 @@ contract GraphColoringProblem is TaskPool {
         if (edge >= graphs[taskId].edges.length) {
             throw;
         }
+        // throw if edge is not present
+        if (!graphs[taskId].edges[edge]) {
+            throw;
+        }
         solution.requestedEdge = edge;
         SolutionRequestedEdge(taskId, solution.requestedEdge);
     }
-
-    event SolutionSubmittedColors(bytes32 indexed taskId, uint color1, uint nonce1, uint color2, uint nonce2);
 
     function submitColors (bytes32 taskId, uint color1, uint nonce1, uint color2, uint nonce2) public notSolved(taskId) {
         var solution = graphs[taskId].solution;
@@ -90,15 +95,13 @@ contract GraphColoringProblem is TaskPool {
             throw;
         }
         var (v1, v2) = getRequestedVertices(taskId);
-        if (sha3(taskId, v1, nonce1, color1) != solution.colorHashes[v1] ||
-            sha3(taskId, v2, nonce2, color2) != solution.colorHashes[v2]) {
+        if (sha3(taskId, v1, color1, nonce1) != solution.colorHashes[v1] ||
+            sha3(taskId, v2, color2, nonce2) != solution.colorHashes[v2]) {
             throw;
         }
         solution.status = SolutionStatus.Waiting;
         SolutionSubmittedColors(taskId, color1, nonce1, color2, nonce2);
     }
-
-    event SolutionAccepted(bytes32 indexed taskId, address proposer);
 
     function acceptSolution (bytes32 taskId) notSolved(taskId) isOwner(taskId) {
         var solution = graphs[taskId].solution;
@@ -109,16 +112,12 @@ contract GraphColoringProblem is TaskPool {
         SolutionAccepted(taskId, solution.proposer);
     }
 
-    event SolutionRejected(bytes32 indexed taskId, address proposer);
-
     function rejectSolution (bytes32 taskId) notSolved(taskId) isOwner(taskId) {
         var solution = graphs[taskId].solution;
         SolutionRejected(taskId, solution.proposer);
         solution.proposer = 0;
         solution.status = SolutionStatus.Open;
     }
-
-    event SolutionDelivered(bytes32 indexed taskId, uint[] colors);
 
     function deliverSolution (bytes32 taskId, uint[] colors) notSolved(taskId) {
         var solution = graphs[taskId].solution;
@@ -156,6 +155,15 @@ contract GraphColoringProblem is TaskPool {
         }
         return hashes;
     }*/
+
+    function getProposer (bytes32 taskId) constant returns (address) {
+        return graphs[taskId].solution.proposer;
+    }
+
+    function getRequestedEdge (bytes32 taskId) constant returns (uint) {
+        return graphs[taskId].solution.requestedEdge;
+    }
+
     function getRequestedVertices (bytes32 taskId) constant returns (uint, uint) {
         uint edge = graphs[taskId].solution.requestedEdge;
         if (edge == 0) {
@@ -169,5 +177,9 @@ contract GraphColoringProblem is TaskPool {
     function getEdge (bytes32 taskId, uint v1, uint v2) constant returns (bool) {
         var length = graphs[taskId].vertices.length;
         return graphs[taskId].edges[v1 * length + v2];
+    }
+
+    function getSolution (bytes32 taskId) constant returns (uint[]) {
+        return graphs[taskId].solution.colors;
     }
 }

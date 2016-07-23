@@ -140,10 +140,10 @@ describe('GraphColoringProblem (coherent tests)', function () {
 
     it('should propose a solution', (done) => {
       let hashes = [
-        solSha3(taskId, 0, nonces[0], colors[0]),
-        solSha3(taskId, 1, nonces[1], colors[1]),
-        solSha3(taskId, 2, nonces[2], colors[2]),
-        solSha3(taskId, 3, nonces[3], colors[3])
+        solSha3(taskId, 0, colors[0], nonces[0]),
+        solSha3(taskId, 1, colors[1], nonces[1]),
+        solSha3(taskId, 2, colors[2], nonces[2]),
+        solSha3(taskId, 3, colors[3], nonces[3])
       ];
       assert.doesNotThrow(() => {
         GraphColoringProblem.proposeSolution(taskId, hashes, { from: account2 });
