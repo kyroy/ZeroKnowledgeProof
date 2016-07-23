@@ -1,0 +1,31 @@
+header, main, footer {
+  padding-left: 240px;
+}
+
+@media only screen and (max-width : 992px) {
+  header, main, footer {
+    padding-left: 0;
+  }
+}
+
+
+/* BEGIN enlarge graph */
+body, div#view {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+}
+
+main {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* graph */
+#graph {
+  min-height: 200px;*/
+  width: 100%;
+  flex: 1 0 auto;
+}
+/* END enlarge graph */

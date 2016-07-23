@@ -1,0 +1,18 @@
+<header>
+  <nav>
+    <ul id="slide-out" class="side-nav fixed">
+      <li data-ng-show="graphCtrl.unsolvedTasks.length === 0"><a href="">Sorry. No unsolved tasks found.</a></li>
+      <li data-ng-repeat="task in graphCtrl.unsolvedTasks">
+        <a href="" data-ng-click="graphCtrl.setGraph(task)">{{task}}</a>
+      </li>
+    </ul>
+    <div class="nav-wrapper">
+      <a href="#" data-activates="slide-out" class="button-collapse"><i class="mdi-navigation-menu"></i>ASDF</a>
+      <a href="#" class="brand-logo">Graph Coloring Problem</a>
+    </div>
+  </nav>
+</header>
+<main>
+  <div id="graph"></div>
+  <script type="text/javascript" src="js/lib/cytoscape.min.js"></script>
+</main>
