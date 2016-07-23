@@ -46,7 +46,7 @@ angular.module('ZeroKnowledgeProof').factory('crypto', function () {
    * @param{string/number/array} data to be signed
    * @returns{string} the signature of the given data
    */
-  crypto.sign = function (account, gameId, data=[]) {
+  crypto.sign = function (account, gameId, data = []) {
     if (!Array.isArray(data)) data = [data];
     let hash = solSha3(...data, gameId);
     return web3.eth.sign(account, hash);
@@ -59,7 +59,7 @@ angular.module('ZeroKnowledgeProof').factory('crypto', function () {
    * @param{string/number/array} data that was signed
    * @returns{boolean} true, iff the signature matches the account and data
      */
-  crypto.verify = function (account, gameId, signature, data=[]) {
+  crypto.verify = function (account, gameId, signature, data = []) {
     if (!Array.isArray(data)) data = [data];
     let msgHash = solSha3(...data, gameId);
     let r = signature.slice(0, 66);
@@ -71,38 +71,6 @@ angular.module('ZeroKnowledgeProof').factory('crypto', function () {
 
     return Auth.verify(account, msgHash, v, r, s);
   };
-
-  crypto.test = function () {
-    const defaultBoard = [-4,-2,-3,-5,-6,-3,-2,-4,0,0,0,4,0,0,0,0,
-                          -1,-1,-1,-1,-1,-1,-1,-1,0,0,0,0,0,0,0,0,
-                          0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                          0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
-                          0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                          0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                          1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,
-                          4,2,3,5,6,3,2,4,0,0,0,116,0,0,0,0];
-
-    let text = 'My super text to be signed';
-    let gameId = 0x529ae4d1feee4c1b4ae8194856bfec24ae7589bd2e31604d52a9019262b8d38e;
-
-    let signature = crypto.sign(web3.eth.accounts[0], gameId, text);
-    let valid = crypto.verify(web3.eth.accounts[0], gameId, signature, text);
-    console.log('testing crypto.sign & crypo.verify: text \t\t\t==>', valid);
-
-    signature = crypto.sign(web3.eth.accounts[0], gameId, defaultBoard);
-    valid = crypto.verify(web3.eth.accounts[0], gameId, signature, defaultBoard);
-    console.log('testing crypto.sign & crypo.verify: defaultBoard \t==>', valid);
-
-    signature = crypto.sign(web3.eth.accounts[0], gameId, text);
-    valid = Auth.verifySig(web3.eth.accounts[0], solSha3(text, gameId), signature);
-    console.log('testing crypto.sign & Auth.verifySig: text \t\t\t==>', valid);
-
-    signature = crypto.sign(web3.eth.accounts[0], gameId, defaultBoard);
-    valid = Auth.verifySig(web3.eth.accounts[0], solSha3(...defaultBoard, gameId), signature);
-    console.log('testing crypto.sign & Auth.verifySig: defaultBoard \t==>', valid);
-  };
-
-  //crypto.test();
 
   return crypto;
 });
