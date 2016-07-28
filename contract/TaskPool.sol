@@ -21,7 +21,7 @@ contract TaskPool {
     TaskList public unsolvedTasks;
     mapping (address => TaskList) public tasksOfAccount;
 
-    event Debug(string message, bytes32 indexed taskId, address a, uint i, bytes32 b);
+    event Debug(string message, bytes32 indexed taskId, address a, uint i, bytes b);
     event DebugMessage(string message);
     event TaskCreated(bytes32 indexed taskId, address indexed owner, uint reward);
 
