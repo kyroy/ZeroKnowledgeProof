@@ -73,167 +73,189 @@ let taskId;
 describe('GraphColoringProblem', function () {
   this.timeout(60000);
   this.slow(1000);
-
   before(initDebugFilters);
-
-  beforeEach((done) => {
-    let filter = GraphColoringProblem.TaskCreated({});
-    filter.watch((_, result) => {
-      taskId = result.args.taskId;
-      assert.isOk(result.args.taskId);
-      filter.stopWatching();
-      done();
-    });
-
-    GraphColoringProblem.createGraph(graph1.numVertices, graph1.edges,
-      { from: account1 });/*, value: web3.toWei(10, 'ether') */
-  });
-
   after(endDebugFilters);
 
-  describe('createGraph()', () => {
-    it('should exist task and graph after before function', () => {
-      let graph;
-      assert.doesNotThrow(() => {
-        graph = GraphColoringProblem.getGraph(taskId);
-      });
-      assert.equal(account1, GraphColoringProblem.getOwner(taskId));
-      // assert.equal(web3.toWei(10, 'ether'), GraphColoringProblem.getReward(taskId).toNumber());
-      assert.equal(graph1.numVertices, graph[0].toNumber());
-      assert.deepEqual(graph1.edges, graph[1]);
-    });
-
-    it('should be possible to create another task', () => {
-      assert.doesNotThrow(() => {
-        GraphColoringProblem.createGraph(graph1.numVertices, graph1.edges,
-          { from: account1 });
-      });
-    });
-  });
-});
-
-describe('GraphColoringProblem (coherent tests)', function () {
-  this.timeout(60000);
-  this.slow(2000);
-
-  before(initDebugFilters);
-
-  before((done) => {
-    let filter = GraphColoringProblem.TaskCreated({});
-    filter.watch((_, result) => {
-      taskId = result.args.taskId;
-      assert.isOk(result.args.taskId);
-      filter.stopWatching();
-      done();
-    });
-
-    GraphColoringProblem.createGraph(graph1.numVertices, graph1.edges,
-      { from: account1 });/*, value: web3.toWei(10, 'ether') */
-  });
-
-  after(endDebugFilters);
-
-  describe('workflow - sequence', () => {
-    let colors = [ 0, 1, 0, 2 ];
-    let nonces = [ 14, 342, 5234, 432 ];
-    let requestedEdge = 1;
-
-    it('should propose a solution', (done) => {
-      let hashes = [
-        solSha3(taskId, 0, colors[0], nonces[0]),
-        solSha3(taskId, 1, colors[1], nonces[1]),
-        solSha3(taskId, 2, colors[2], nonces[2]),
-        solSha3(taskId, 3, colors[3], nonces[3])
-      ];
-      assert.doesNotThrow(() => {
-        GraphColoringProblem.proposeSolution(taskId, hashes, { from: account2 });
-      });
-      let filter = GraphColoringProblem.SolutionProposed({});
+  describe('general', function () {
+    beforeEach((done) => {
+      let filter = GraphColoringProblem.TaskCreated({});
       filter.watch((_, result) => {
-        assert.equal(taskId, result.args.taskId);
-        assert.equal(account2, result.args.proposer);
-        assert.deepEqual(hashes, result.args.hashes);
+        taskId = result.args.taskId;
+        assert.isOk(result.args.taskId);
         filter.stopWatching();
         done();
       });
+
+      GraphColoringProblem.createGraph(graph1.numVertices, graph1.edges,
+        { from: account1 });/*, value: web3.toWei(10, 'ether') */
     });
-    it('should request an edge', (done) => {
-      assert.doesNotThrow(() => {
-        GraphColoringProblem.requestEdge(taskId, requestedEdge, { from: account1 });
+
+    describe('createGraph()', () => {
+      it('should exist task and graph after before function', () => {
+        let graph;
+        assert.doesNotThrow(() => {
+          graph = GraphColoringProblem.getGraph(taskId);
+        });
+        assert.equal(account1, GraphColoringProblem.getOwner(taskId));
+        // assert.equal(web3.toWei(10, 'ether'), GraphColoringProblem.getReward(taskId).toNumber());
+        assert.equal(graph1.numVertices, graph[0].toNumber());
+        assert.deepEqual(graph1.edges, graph[1]);
       });
-      let filter = GraphColoringProblem.SolutionRequestedEdge({});
-      filter.watch((_, result) => {
-        // event SolutionRequestedEdge(bytes32 indexed taskId, uint edge);
-        assert.equal(taskId, result.args.taskId);
-        assert.equal(requestedEdge, result.args.edge.toNumber());
-        filter.stopWatching();
-        done();
-      });
-    });
-    it('should submit colors', (done) => {
-      assert.doesNotThrow(() => {
-        GraphColoringProblem.submitColors(taskId, colors[0], nonces[0], colors[1], nonces[1],
-          { from: account2 });
-      });
-      let filter = GraphColoringProblem.SolutionSubmittedColors({});
-      filter.watch((_, result) => {
-        // event SolutionSubmittedColors(bytes32 indexed taskId, uint color1, uint nonce1,
-        //                               uint color2, uint nonce2);
-        assert.equal(taskId, result.args.taskId);
-        assert.equal(colors[0], result.args.color1.toNumber());
-        assert.equal(nonces[0], result.args.nonce1.toNumber());
-        assert.equal(colors[1], result.args.color2.toNumber());
-        assert.equal(nonces[1], result.args.nonce2.toNumber());
-        filter.stopWatching();
-        done();
-      });
-    });
-    it('should accept a solution', (done) => {
-      assert.doesNotThrow(() => {
-        GraphColoringProblem.acceptSolution(taskId, { from: account1 });
-      });
-      let filter = GraphColoringProblem.SolutionAccepted({});
-      filter.watch((_, result) => {
-        // event SolutionAccepted(bytes32 indexed taskId, address proposer);
-        assert.equal(taskId, result.args.taskId);
-        assert.equal(account2, result.args.proposer);
-        filter.stopWatching();
-        done();
-      });
-    });
-    it('should deliver the solution', (done) => {
-      assert.doesNotThrow(() => {
-        GraphColoringProblem.deliverSolution(taskId, colors, { from: account2 });
-      });
-      let filter = GraphColoringProblem.SolutionDelivered({});
-      filter.watch((_, result) => {
-        // event SolutionDelivered(bytes32 indexed taskId, uint[] colors);
-        assert.equal(taskId, result.args.taskId);
-        assert.deepEqual(colors, result.args.colors.map((x) => { return x.toNumber(); }));
-        filter.stopWatching();
-        done();
+
+      it('should be possible to create another task', () => {
+        assert.doesNotThrow(() => {
+          GraphColoringProblem.createGraph(graph1.numVertices, graph1.edges,
+            { from: account1 });
+        });
       });
     });
   });
 
-  // let plan = new Plan(3, () => {
-  //   done();
-  // });
-  //
-  // let filter = Chess.GameEnded({});
-  // filter.watch((error, result) => {
-  //   assert.equal(gameId, result.args.gameId);
-  //   assert.equal(player2, Chess.games(result.args.gameId)[5]);
-  //   filter.stopWatching();
-  //   done();
-  // });
-  //
-  // // EloScoreUpdate event P2
-  // let filter2 = Chess.EloScoreUpdate({player: player2});
-  // filter2.watch((error, result) => {
-  //   assert.equal(player2, result.args.player);
-  //   assert.equal(121, result.args.score.toNumber());
-  //   filter2.stopWatching();
-  //   plan.ok();
-  // });
+  describe('coherent tests', function () {
+    before((done) => {
+      let filter = GraphColoringProblem.TaskCreated({});
+      filter.watch((_, result) => {
+        taskId = result.args.taskId;
+        assert.isOk(result.args.taskId);
+        filter.stopWatching();
+        done();
+      });
+
+      GraphColoringProblem.createGraph(graph1.numVertices, graph1.edges,
+        { from: account1 });/*, value: web3.toWei(10, 'ether') */
+    });
+
+    describe('workflow', () => {
+      let colors = [ 0, 1, 0, 2 ];
+      let nonces = [ 14, 342, 5234, 432 ];
+      let requestedEdge = 1;
+
+      it('should propose a solution', (done) => {
+        let hashes = [
+          solSha3(taskId, 0, colors[0], nonces[0]),
+          solSha3(taskId, 1, colors[1], nonces[1]),
+          solSha3(taskId, 2, colors[2], nonces[2]),
+          solSha3(taskId, 3, colors[3], nonces[3])
+        ];
+        assert.doesNotThrow(() => {
+          GraphColoringProblem.proposeSolution(taskId, hashes, { from: account2 });
+        });
+        let filter = GraphColoringProblem.SolutionProposed({});
+        filter.watch((_, result) => {
+          assert.equal(taskId, result.args.taskId);
+          assert.equal(account2, result.args.proposer);
+          assert.deepEqual(hashes, result.args.hashes);
+          filter.stopWatching();
+          done();
+        });
+      });
+      it('should request an edge', (done) => {
+        assert.doesNotThrow(() => {
+          GraphColoringProblem.requestEdge(taskId, requestedEdge, { from: account1 });
+        });
+        let filter = GraphColoringProblem.SolutionRequestedEdge({});
+        filter.watch((_, result) => {
+          // event SolutionRequestedEdge(bytes32 indexed taskId, uint edge);
+          assert.equal(taskId, result.args.taskId);
+          assert.equal(requestedEdge, result.args.edge.toNumber());
+          filter.stopWatching();
+          done();
+        });
+      });
+      it('should submit colors', (done) => {
+        assert.doesNotThrow(() => {
+          GraphColoringProblem.submitColors(taskId, colors[0], nonces[0], colors[1], nonces[1],
+            { from: account2 });
+        });
+        let filter = GraphColoringProblem.SolutionSubmittedColors({});
+        filter.watch((_, result) => {
+          // event SolutionSubmittedColors(bytes32 indexed taskId, uint color1, uint nonce1,
+          //                               uint color2, uint nonce2);
+          assert.equal(taskId, result.args.taskId);
+          assert.equal(colors[0], result.args.color1.toNumber());
+          assert.equal(nonces[0], result.args.nonce1.toNumber());
+          assert.equal(colors[1], result.args.color2.toNumber());
+          assert.equal(nonces[1], result.args.nonce2.toNumber());
+          filter.stopWatching();
+          done();
+        });
+      });
+      it('should accept a solution', (done) => {
+        assert.doesNotThrow(() => {
+          GraphColoringProblem.acceptSolution(taskId, { from: account1 });
+        });
+        let filter = GraphColoringProblem.SolutionAccepted({});
+        filter.watch((_, result) => {
+          // event SolutionAccepted(bytes32 indexed taskId, address proposer);
+          assert.equal(taskId, result.args.taskId);
+          assert.equal(account2, result.args.proposer);
+          filter.stopWatching();
+          done();
+        });
+      });
+      it('should deliver the solution', (done) => {
+        assert.doesNotThrow(() => {
+          GraphColoringProblem.deliverSolution(taskId, colors, { from: account2 });
+        });
+        let filter = GraphColoringProblem.SolutionDelivered({});
+        filter.watch((_, result) => {
+          // event SolutionDelivered(bytes32 indexed taskId, uint[] colors);
+          assert.equal(taskId, result.args.taskId);
+          assert.deepEqual(colors, result.args.colors.map((x) => { return x.toNumber(); }));
+          filter.stopWatching();
+          done();
+        });
+      });
+    });
+
+    // let plan = new Plan(3, () => {
+    //   done();
+    // });
+    //
+    // let filter = Chess.GameEnded({});
+    // filter.watch((error, result) => {
+    //   assert.equal(gameId, result.args.gameId);
+    //   assert.equal(player2, Chess.games(result.args.gameId)[5]);
+    //   filter.stopWatching();
+    //   done();
+    // });
+    //
+    // // EloScoreUpdate event P2
+    // let filter2 = Chess.EloScoreUpdate({player: player2});
+    // filter2.watch((error, result) => {
+    //   assert.equal(player2, result.args.player);
+    //   assert.equal(121, result.args.score.toNumber());
+    //   filter2.stopWatching();
+    //   plan.ok();
+    // });
+  });
+
+  describe.only('size tests', function () {
+    function insertRandomGraph (size, density) {
+      let edges = [];
+      for (let i = 0; i < size * size; i++) {
+        edges.push(Math.random() < density);
+      }
+      for (let i = 0; i < size; i++) {
+        edges[i * size + i] = false;
+      }
+      GraphColoringProblem.createGraph(size, edges,
+        { from: web3.eth.accounts[0] });
+    }
+    for (let i = 20; i < 500; i+=1) {
+      it('should create a graph of size ' + i + ', density 0.4', (done) => {
+        assert.doesNotThrow(() => {
+          insertRandomGraph(i, 0.4);
+        });
+
+        let filter = GraphColoringProblem.TaskCreated({});
+        filter.watch((_, result) => {
+          taskId = result.args.taskId;
+          assert.isOk(result.args.taskId);
+          filter.stopWatching();
+          done();
+        });
+      });
+    }
+  });
 });

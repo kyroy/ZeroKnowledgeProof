@@ -191,10 +191,10 @@ angular.module('ZeroKnowledgeProof').controller('GraphColoringProblemController'
     };
 
     this.insertStubData = function () {
-      let num = parseInt(Math.random() * 5 + 2);
+      let num = parseInt(Math.random() * 9 + 4);
       let edges = [];
       for (let i = 0; i < num * num; i++) {
-        edges.push(Math.random() < 0.5);
+        edges.push(Math.random() < 0.3);
       }
       for (let i = 0; i < num; i++) {
         edges[i * num + i] = false;
