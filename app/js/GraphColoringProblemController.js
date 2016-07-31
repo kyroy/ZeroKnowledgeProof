@@ -1,5 +1,6 @@
 /* global angular, cytoscape, jQuery */
 import {web3, GraphColoringProblem} from '../../contract/GraphColoringProblem.sol';
+import { getRandomHexAdjacencyMatrix } from './utils.js';
 
 function leftPad (nr, n, str) {
   return Array(n - String(nr).length + 1).join(str || '0') + nr;
@@ -102,8 +103,9 @@ angular.module('ZeroKnowledgeProof').controller('GraphColoringProblemController'
         });
       }
       for (let i = 0; i < numVertices; i++) {
-        for (let j = i; j < numVertices; j++) {
-          if (edges[i * numVertices + j]) {
+        for (let j = i + 1; j < numVertices; j++) {
+          if (edges[i * numVertices + j] === '1') {
+            console.log('edge', i * numVertices + j);
             elements.push({
               data: {
                 id: i + '-' + j,
@@ -147,6 +149,8 @@ angular.module('ZeroKnowledgeProof').controller('GraphColoringProblemController'
           let graph = graphs.get(this.currentTaskId);
           if (web3.eth.accounts.indexOf(graph.owner) !== -1) {
             let requestedEdge = v1 * graph.numVertices + v2;
+            console.log('vertices', v1, v2);
+            console.log('requestedEdge', requestedEdge);
             try {
               GraphColoringProblem.requestEdge(this.currentTaskId, requestedEdge,
                 { from: graph.owner });
@@ -192,13 +196,7 @@ angular.module('ZeroKnowledgeProof').controller('GraphColoringProblemController'
 
     this.insertStubData = function () {
       let num = parseInt(Math.random() * 9 + 4);
-      let edges = [];
-      for (let i = 0; i < num * num; i++) {
-        edges.push(Math.random() < 0.3);
-      }
-      for (let i = 0; i < num; i++) {
-        edges[i * num + i] = false;
-      }
+      let edges = getRandomHexAdjacencyMatrix(num, 0.3);
       GraphColoringProblem.createGraph(num, edges,
         { from: web3.eth.accounts[0], value: web3.toWei(0.5, 'ether') });
     };

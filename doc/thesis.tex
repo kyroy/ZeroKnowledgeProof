@@ -1,0 +1,113 @@
+\documentclass[a4paper,BCOR=5mm]{scrbook}
+%\areaset[1.5cm]{14cm}{25cm}
+
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage[T1]{fontenc}
+
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amsthm}				%theorem
+\usepackage{setspace}			%space (titlepage)
+\usepackage{tabularx}
+\usepackage{paralist}
+\usepackage{listings}
+
+% Define Colors
+\usepackage{color}
+\definecolor{eclipseBlue}{RGB}{42,0.0,255}
+\definecolor{eclipseGreen}{RGB}{63,127,95}
+\definecolor{eclipsePurple}{RGB}{127,0,85}
+
+% Define Language
+\lstdefinelanguage{Solidity}{
+	% list of keywords
+	morekeywords={as,break,continue,contract,delete,do,else,enum,event,for,from,function,if,import,library,mapping,modifier,new,private,public,return,returns,struct,super,this,using,while,
+		balance,block,blockhash,coinbase,data,difficulty,erecover,false,gas,gaslimit,gasprice,msg,now,null,number,origin,ripemd160,send,sender,sha256,sha3,sig,suicide,timestamp,true,tx,value},
+	%otherkeywords={anonymous,constant,external,indexed,internal,is,memory,storage},
+	emph={address,bool,byte,bytes,bytes1,bytes10,bytes11,bytes12,bytes13,bytes14,bytes15,bytes16,bytes17,bytes18,bytes19,bytes2,bytes20,bytes21,bytes22,bytes23,bytes24,bytes25,bytes26,bytes27,bytes28,bytes29,bytes3,bytes30,bytes31,bytes32,bytes4,bytes5,bytes6,bytes7,bytes8,bytes9,int,int104,int112,int120,int128,int136,int144,int152,int16,int160,int168,int176,int184,int192,int200,int208,int216,int224,int232,int24,int240,int248,int256,int32,int40,int48,int56,int64,int72,int8,int80,int88,int96,real,string,uint,uint104,uint112,uint120,uint128,uint136,uint144,uint152,uint16,uint160,uint168,uint176,uint184,uint192,uint200,uint208,uint216,uint224,uint232,uint24,uint240,uint248,uint256,uint32,uint40,uint48,uint56,uint64,uint72,uint8,uint80,uint88,uint96,ureal,var,
+		anonymous,constant,external,indexed,internal,is,memory,storage},
+	emphstyle={\color{blue}},
+	%otherkeywords={},
+	sensitive=false, % keywords are not case-sensitive
+	morecomment=[l]{//}, % l is for line comment
+	morecomment=[s]{/*}{*/}, % s is for start and end delimiter
+	morestring=[b]" % defines that strings are enclosed in double quotes
+}
+
+% Set Language
+\lstset{
+	language={Solidity},
+	basicstyle=\small\ttfamily, % Global Code Style
+	captionpos=b, % Position of the Caption (t for top, b for bottom)
+	extendedchars=true, % Allows 256 instead of 128 ASCII characters
+	tabsize=2, % number of spaces indented when discovering a tab 
+	columns=fixed, % make all characters equal width
+	keepspaces=true, % does not ignore spaces to fit width, convert tabs to spaces
+	showstringspaces=false, % lets spaces in strings appear as real spaces
+	breaklines=true, % wrap lines if they don't fit
+%	frame=trbl, % draw a frame at the top, right, left and bottom of the listing
+%	frameround=tttt, % make the frame round at all four corners
+%	framesep=4pt, % quarter circle size of the round corners
+%	numbers=left, % show line numbers at the left
+	numberstyle=\tiny\ttfamily, % style of the line numbers
+	commentstyle=\color{eclipseGreen}, % style of comments
+	keywordstyle=\color{eclipsePurple}, % style of keywords
+	stringstyle=\color{eclipseBlue}, % style of strings
+}
+
+\usepackage{tikz}
+\usepackage{algorithm, algpseudocode}
+
+%\usepackage[usenames,dvipsnames]{color}
+\usepackage[
+	colorinlistoftodos
+	, textsize=small
+%	, disable
+]{todonotes}
+
+\usepackage{resources/def}
+
+\usepackage{hyperref}
+\hypersetup{
+	pdftitle={\myTitle},
+	pdfauthor={\myAuthor},
+	pdfsubject={Master Thesis},
+	pdfkeywords={zero,knowledge,proof,ethereum,blockchain},
+    colorlinks,
+    citecolor=brown,
+    filecolor=black,
+    linkcolor=blue,
+    urlcolor=blue
+}
+
+\raggedbottom % space at bottom of page and not between
+
+%\renewcommand{\labelenumi}{(\arabic{enumi})}
+
+\theoremstyle{definition}
+\newtheorem{theorem}{Theorem}[chapter]
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{lemma}[theorem]{Lemma}
+
+
+\begin{document}
+\input{resources/titlepage}
+\tableofcontents
+
+\chapter{Introduction}\pagenumbering{arabic}
+\input{introduction}
+
+\chapter{Test}
+\input{test}
+
+
+
+\bibliographystyle{alpha}
+\bibliography{references}
+\addcontentsline{toc}{chapter}{Bibliography}
+
+\listoftodos
+\end{document}

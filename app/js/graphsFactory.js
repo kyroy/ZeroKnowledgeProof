@@ -1,5 +1,6 @@
 /* global angular, jQuery */
 import {web3, GraphColoringProblem} from '../../contract/GraphColoringProblem.sol';
+import { hexToBinary } from './utils.js';
 angular.module('ZeroKnowledgeProof').factory('graphs', function ($rootScope) {
   let graphs = {
     taskIds: [],
@@ -53,11 +54,14 @@ angular.module('ZeroKnowledgeProof').factory('graphs', function ($rootScope) {
   graphs.loadGraphById = function (taskId) {
     console.log('loadGraphById', taskId);
     let graph = GraphColoringProblem.getGraph(taskId);
+    let edges = hexToBinary(graph[1].slice(2)).result;
+    edges = edges.slice(edges.indexOf('1'));
     return graphs.update(taskId,
       GraphColoringProblem.getOwner(taskId),
       GraphColoringProblem.getReward(taskId).toNumber(),
       GraphColoringProblem.isSolved(taskId),
-      graph[0].toNumber(), graph[1],
+      graph[0].toNumber(),
+      edges,
       GraphColoringProblem.getProposer(taskId),
       GraphColoringProblem.getHashedVertices(taskId),
       GraphColoringProblem.getRequestedEdge(taskId).toNumber(),

@@ -1,5 +1,3 @@
-var assert = require('chai').assert;
-
 export function getRandomHexAdjacencyMatrix (numVertices, density) {
   let edgeArray = [];
   let edges = '1';
@@ -95,22 +93,4 @@ export function hexToBinary(s) {
         }
     }
     return { valid: true, result: ret };
-}
-
-export class Plan {
-  constructor (count, done) {
-    this.done = done;
-    this.count = count;
-  }
-
-  ok () {
-    if (this.count === 0) {
-      assert(false, 'Too many assertions called');
-    } else {
-      this.count--;
-    }
-    if (this.count === 0) {
-      this.done();
-    }
-  }
 }

@@ -1,0 +1,23 @@
+\RequirePackage{xspace}
+\RequirePackage{xparse} % multiple default values in commands
+\RequirePackage{xifthen}
+\xspaceaddexceptions{]\}}
+
+\newcommand{\myAuthor}{Dennis Kuhnert}
+\newcommand{\myTitle}{Zero-Knowledge Proofs}
+
+\newcommand{\colorOne}{Orange}
+\newcommand{\colorTwo}{green}
+
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}%
+%\newcolumntype{R}[1]{>{\hsize=#1\hsize\raggedleft\arraybackslash}X}%
+%\newcolumntype{C}[2]{>{\hsize=#1\hsize\columncolor{#2}\centering\arraybackslash}X}%
+
+\newcommand{\MATH}[1]{\ensuremath{#1}}
+\newcommand{\OP}[1]{\operatorname{#1}}
+
+% process definitions
+\newcommand{\N}{\MATH{\mathbb{N}}\xspace}
+\newcommand{\B}{\MATH{\mathbb{B}}\xspace}
+\newcommand{\true}{\textsf{t}\xspace}
+\newcommand{\false}{\textsf{f}\xspace}

@@ -7,14 +7,9 @@ import "TaskPool.sol";
 
 contract GraphColoringProblem is TaskPool {
 
-    struct Vertex {
-        uint id;
-        bytes32 colorHash; // TODO may be removed
-    }
-
     struct Graph {
-        // ids of the nodes
-        Vertex[] vertices;
+        // number of vertices
+        uint vertices;
         // adjacency matrix with the length of |vertices| * |vertices|
         bytes edges;
         Solution solution;
@@ -41,12 +36,17 @@ contract GraphColoringProblem is TaskPool {
 
     function createGraph (uint numVertices, bytes edges) public {
         bytes32 taskId = TaskPool.createTask();
-        if (edges.length * 4 < numVertices * numVertices) {
-            /*throw;*/
+        // check length of edges
+        if ((edges.length + 1) * 8 < numVertices * numVertices) {
+            throw;
         }
-        for (var i = 0; i < numVertices; i++) {
-            graphs[taskId].vertices.push(Vertex(i, 0));
-        }
+        // check if first bit is set
+        /*if (edges[0] < 2**7) {
+            throw;
+        }*/
+        Debug("edges.length", taskId, 0, edges.length, '\x00');
+        Debug("edges[0]", taskId, 0, uint(edges[0]), '\x00');
+        graphs[taskId].vertices = numVertices;
         graphs[taskId].edges = edges;
     }
 
@@ -72,14 +72,24 @@ contract GraphColoringProblem is TaskPool {
         if (solution.status != SolutionStatus.Pending || solution.requestedEdge != 0) {
             throw;
         }
-        if (edge >= graphs[taskId].vertices.length * graphs[taskId].vertices.length) {
+        if (edge >= graphs[taskId].vertices * graphs[taskId].vertices) {
             throw;
         }
         // throw if edge is not present
-        // TODO UMSTELLUNG
-        /*if (!graphs[taskId].edges[edge]) {
-            throw;
-        }*/
+        uint edgeIndex = edge / 8;
+        uint edgeOffset = 7 - edge % 8;
+        uint filter = 2**edgeOffset;
+        if (uint(graphs[taskId].edges[edgeIndex]) & filter != filter) {
+            DebugMessage("requestEdge failed");
+            Debug("edge", taskId, 0, edge, '\x00');
+            Debug("edgeIndex", taskId, 0, edgeIndex, '\x00');
+            Debug("edgeOffset", taskId, 0, edgeOffset, '\x00');
+            Debug("filter", taskId, 0, filter, '\x00');
+            Debug("uint(graphs[taskId].edges[edgeIndex])", taskId, 0, uint(graphs[taskId].edges[edgeIndex]), '\x00');
+            Debug("& filter", taskId, 0, uint(graphs[taskId].edges[edgeIndex]) & filter, '\x00');
+            return;
+            /*throw;*/
+        }
         solution.requestedEdge = edge;
         SolutionRequestedEdge(taskId, solution.requestedEdge);
     }
@@ -143,7 +153,7 @@ contract GraphColoringProblem is TaskPool {
     // ////////////
 
     function getGraph (bytes32 taskId) constant returns (uint, bytes) {
-        return (graphs[taskId].vertices.length, graphs[taskId].edges);
+        return (graphs[taskId].vertices, graphs[taskId].edges);
     }
 
     function getHashedVertices (bytes32 taskId) constant returns (bytes32[]) {
@@ -171,8 +181,8 @@ contract GraphColoringProblem is TaskPool {
         if (edge == 0) {
             throw;
         }
-        uint v2 = edge % graphs[taskId].vertices.length;
-        uint v1 = (edge - v2) / graphs[taskId].vertices.length;
+        uint v2 = edge % graphs[taskId].vertices;
+        uint v1 = (edge - v2) / graphs[taskId].vertices;
         return (v1, v2);
     }
 

@@ -1,0 +1,55 @@
+\documentclass[a4paper]{scrartcl}
+
+\usepackage[english]{babel}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+
+\usepackage{graphicx}
+\usepackage{amsmath}
+
+\usepackage[usenames,dvipsnames]{color}
+
+\usepackage[
+	colorinlistoftodos
+	, textsize=small
+	%, disable
+]{todonotes}
+
+\usepackage{hyperref}
+\usepackage{calc}
+\hypersetup{
+    colorlinks,
+    citecolor=Green,
+    filecolor=black,
+    linkcolor=blue,
+    urlcolor=blue%black
+}
+
+\title{Zero-Knowledge Proofs}
+\subtitle{Exposé for Master Thesis}
+\author{Dennis Kuhnert}
+\date{\today}
+\publishers{\begin{minipage}[t]{0.25\textwidth}%
+		\flushright\Large%
+		Supervisors:~%
+	\end{minipage}%
+	\vspace{0pt}~%
+	\begin{minipage}[t]{0.5\textwidth}%
+		\flushleft\Large%
+		Prof. Dr.-Ing. Stefan Tai\\%
+		M.Sc. Jacob Eberhard
+	\end{minipage}}
+
+\begin{document}
+\maketitle
+
+\section{Standard Forms}
+Typically, proofs of properties of Distributed Consensus algorithms argue about the global state of the whole system.
+But practically, these algorithms are implemented in action-based formalisms like process calculi.
+These can be used to program the behaviour of a local process in a comfortable and intuitive way, as they are closer to the common programming languages.
+Thus arguing for global properties of a distributed algorithm can be very cumbersome.
+\cite{bengtson2009psi}
+
+\bibliographystyle{alpha}
+\bibliography{../references}
+\end{document}
