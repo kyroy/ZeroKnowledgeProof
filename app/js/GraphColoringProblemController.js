@@ -105,7 +105,6 @@ angular.module('ZeroKnowledgeProof').controller('GraphColoringProblemController'
       for (let i = 0; i < numVertices; i++) {
         for (let j = i + 1; j < numVertices; j++) {
           if (edges[i * numVertices + j] === '1') {
-            console.log('edge', i * numVertices + j);
             elements.push({
               data: {
                 id: i + '-' + j,
@@ -149,8 +148,6 @@ angular.module('ZeroKnowledgeProof').controller('GraphColoringProblemController'
           let graph = graphs.get(this.currentTaskId);
           if (web3.eth.accounts.indexOf(graph.owner) !== -1) {
             let requestedEdge = v1 * graph.numVertices + v2;
-            console.log('vertices', v1, v2);
-            console.log('requestedEdge', requestedEdge);
             try {
               GraphColoringProblem.requestEdge(this.currentTaskId, requestedEdge,
                 { from: graph.owner });

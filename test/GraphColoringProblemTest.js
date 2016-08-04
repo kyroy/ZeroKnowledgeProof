@@ -60,7 +60,7 @@ let account2 = web3.eth.accounts[1];
 
 let taskId;
 
-describe('GraphColoringProblem', function () {
+describe.skip('GraphColoringProblem', function () {
   this.timeout(60000);
   this.slow(1000);
   before(initDebugFilters);

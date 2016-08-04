@@ -1,3 +1,56 @@
 asd
 
 \lstinputlisting{resources/test.sol}
+
+\section{Class Diagram}
+
+\begin{center}
+\begin{tikzpicture}
+\begin{umlpackage}{p}
+\begin{umlpackage}{sp1}
+\umlclass[template=T]{A}{
+	n : uint \\ t : float
+}{}
+\umlclass[y=-3]{B}{
+	d : double
+}{
+\umlvirt{setB(b : B) : void} \\ getB() : B}
+\end{umlpackage}
+\begin{umlpackage}[x=10,y=-6]{sp2}
+\umlinterface{C}{
+	n : uint \\ s : string
+}{}
+\end{umlpackage}
+\umlclass[x=2,y=-10]{D}{
+	n : uint
+}{}
+\end{umlpackage}
+
+\umlassoc[geometry=-|-, arg1=tata, mult1=*, pos1=0.3, arg2=toto, mult2=1, pos2=2.9, align2=left]{C}{B}
+\umlunicompo[geometry=-|, arg=titi, mult=*, pos=1.7, stereo=vector]{D}{C}
+\umlimport[geometry=|-, anchors=90 and 50, name=import]{sp2}{sp1}
+\umlaggreg[arg=tutu, mult=1, pos=0.8, angle1=30, angle2=60, loopsize=2cm]{D}{D}
+\umlinherit[geometry=-|]{D}{B}
+\umlnote[x=2.5,y=-6, width=3cm]{B}{Je suis une note qui concerne la classe B}
+\umlnote[x=7.5,y=-2]{import-2}{Je suis une note qui concerne la relation d'import}
+\end{tikzpicture}
+\end{center}
+
+\section{on-chain-chess}
+
+\begin{center}
+\begin{tikzpicture}
+\umlsimpleclass[type=abstract,tags=Contract]{TurnBasedGame}
+\umlsimpleclass[y=-2,tags=Contract,fill=lime]{Chess}
+\umlsimpleclass[x=-3,y=-4,tags=Library,fill=orange!40]{Elo}
+\umlsimpleclass[y=-4,tags=Library,fill=orange!40]{Auth}
+\umlsimpleclass[x=3.3,y=-4,tags=Library,fill=orange!40]{ChessLogic}
+\umlactor[x=5,y=-2]{Client}
+
+\umlassoc[attr=|interacts with, pos=0.5, align=center]{Client}{Chess}
+\umlinherit[attr=|extends,pos=0.5]{Chess}{TurnBasedGame}
+\umluniassoc[geometry=|-|]{Chess}{Elo}
+\umluniassoc[arg=uses,pos=0.35]{Chess}{Auth}
+\umluniassoc[geometry=|-|]{Chess}{ChessLogic}
+\end{tikzpicture}
+\end{center}

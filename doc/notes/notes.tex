@@ -1,0 +1,72 @@
+\documentclass[a4paper]{scrartcl}
+
+\usepackage[english]{babel}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+
+\usepackage{graphicx}
+\usepackage{amsmath}
+
+\usepackage[usenames,dvipsnames]{color}
+
+\usepackage[
+	colorinlistoftodos
+	, textsize=small
+	%, disable
+]{todonotes}
+
+\usepackage{hyperref}
+\usepackage{calc}
+\hypersetup{
+    colorlinks,
+    citecolor=Green,
+    filecolor=black,
+    linkcolor=blue,
+    urlcolor=blue%black
+}
+
+\title{Zero-Knowledge Proofs}
+\subtitle{Notes}
+\author{Dennis Kuhnert}
+\date{\today}
+\publishers{\begin{minipage}[t]{0.25\textwidth}%
+		\flushright\Large%
+		Supervisors:~%
+	\end{minipage}%
+	\vspace{0pt}~%
+	\begin{minipage}[t]{0.5\textwidth}%
+		\flushleft\Large%
+		Prof. Dr.-Ing. Stefan Tai\\%
+		M.Sc. Jacob Eberhard
+	\end{minipage}}
+
+\begin{document}
+\maketitle
+
+\section{Graph Coloring Problem}
+TODOs:
+\begin{itemize}
+	\item Implement parallel communication	
+\end{itemize}
+
+\section{Zero-Knowledge Protocols}
+From \cite{knapp2009overview}
+
+\subsection{Fiat-Shamir}
+RSA-like with $n = pq$, etc.\\
+Depends on the difficulty of factoring
+
+Does not work, because all information of the verifier are public.
+An attacker can just read all information and pass the expected value.
+
+\subsection{Guillou-Quisquarter}
+Extension of the Fiat-Shamir protocol
+
+\subsection{Schnorr}
+Depends on the difficulty of calculating discrete logarithms
+\todo{vermutlich nicht BC}
+
+
+\bibliographystyle{alpha}
+\bibliography{../references}
+\end{document}
