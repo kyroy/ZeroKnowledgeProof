@@ -1,6 +1,6 @@
 /* global describe, it, beforeEach, before, after */
 import { GraphColoringProblem, web3 } from '../contract/GraphColoringProblem.sol';
-import { getRandomHexAdjacencyMatrix, binaryToHex, hexToBinary } from '../app/js/utils.js';
+import { getRandomHexAdjacencyMatrix, binaryToHex, hexToBinary, toNumber } from '../app/js/utils.js';
 // import { Plan } from './utils.js';
 
 function leftPad (nr, n, str) {
@@ -142,39 +142,48 @@ describe('GraphColoringProblem', function () {
         { from: account1 });/*, value: web3.toWei(10, 'ether') */
     });
 
-    describe('workflow', () => {
+    describe.only('workflow', () => {
       let colors = [ 0, 1, 0, 2 ];
       let nonces = [ 14, 342, 5234, 432 ];
       let requestedEdge = 1;
+      let hashes = [];
 
       it('should propose a solution', (done) => {
-        let hashes = [
+        hashes.push([
           solSha3(taskId, 0, colors[0], nonces[0]),
           solSha3(taskId, 1, colors[1], nonces[1]),
           solSha3(taskId, 2, colors[2], nonces[2]),
           solSha3(taskId, 3, colors[3], nonces[3])
-        ];
+        ]);
+        hashes.push([
+          solSha3(hashes[0][0], hashes[0][1]),
+          solSha3(hashes[0][2], hashes[0][3])
+        ]);
+        hashes.push([
+          solSha3(hashes[1][0], hashes[1][1])
+        ]);
+
         assert.doesNotThrow(() => {
-          GraphColoringProblem.proposeSolution(taskId, hashes, { from: account2 });
+          GraphColoringProblem.proposeSolution(taskId, [hashes[2][0]], { from: account2 });
         });
         let filter = GraphColoringProblem.SolutionProposed({});
         filter.watch((_, result) => {
           assert.equal(taskId, result.args.taskId);
           assert.equal(account2, result.args.proposer);
-          assert.deepEqual(hashes, result.args.hashes);
+          assert.deepEqual([hashes[2][0]], result.args.hashes);
           filter.stopWatching();
           done();
         });
       });
       it('should request an edge', (done) => {
         assert.doesNotThrow(() => {
-          GraphColoringProblem.requestEdge(taskId, requestedEdge, { from: account1 });
+          GraphColoringProblem.requestEdges(taskId, [requestedEdge], { from: account1 });
         });
-        let filter = GraphColoringProblem.SolutionRequestedEdge({});
+        let filter = GraphColoringProblem.SolutionRequestedEdges({});
         filter.watch((_, result) => {
           // event SolutionRequestedEdge(bytes32 indexed taskId, uint edge);
           assert.equal(taskId, result.args.taskId);
-          assert.equal(requestedEdge, result.args.edge.toNumber());
+          assert.deepEqual([requestedEdge], result.args.edges.map(toNumber));
           filter.stopWatching();
           done();
         });
@@ -182,6 +191,7 @@ describe('GraphColoringProblem', function () {
       it('should submit colors', (done) => {
         assert.doesNotThrow(() => {
           GraphColoringProblem.submitColors(taskId, colors[0], nonces[0], colors[1], nonces[1],
+            [hashes[0][1], hashes[1][1]], [hashes[0][0], hashes[1][1]],
             { from: account2 });
         });
         let filter = GraphColoringProblem.SolutionSubmittedColors({});
@@ -189,6 +199,7 @@ describe('GraphColoringProblem', function () {
           // event SolutionSubmittedColors(bytes32 indexed taskId, uint color1, uint nonce1,
           //                               uint color2, uint nonce2);
           assert.equal(taskId, result.args.taskId);
+          assert.equal(0, result.args.submission.toNumber());
           assert.equal(colors[0], result.args.color1.toNumber());
           assert.equal(nonces[0], result.args.nonce1.toNumber());
           assert.equal(colors[1], result.args.color2.toNumber());

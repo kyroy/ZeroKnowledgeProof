@@ -98,3 +98,7 @@ export function hexToBinary (s) {
   }
   return { valid: true, result: ret };
 }
+
+export function toNumber (x) {
+  return x.toNumber();
+}

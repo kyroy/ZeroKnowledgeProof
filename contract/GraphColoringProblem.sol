@@ -15,21 +15,23 @@ contract GraphColoringProblem is TaskPool {
         Solution solution;
     }
 
-    enum SolutionStatus { Open, Pending, Waiting, Accepted }
+    enum SolutionStatus { Open, Pending, Accepted }
 
     struct Solution {
         address proposer;
         SolutionStatus status;
-        bytes32[] colorHashes;
-        uint requestedEdge;
+        // array of merke tree hashes
+        bytes32[] treeHashes;
+        uint[] requestedEdges;
+        uint submissions;
         uint[] colors;
     }
 
     mapping (bytes32 => Graph) graphs;
 
     event SolutionProposed(bytes32 indexed taskId, address indexed proposer, bytes32[] hashes);
-    event SolutionRequestedEdge(bytes32 indexed taskId, uint edge);
-    event SolutionSubmittedColors(bytes32 indexed taskId, uint color1, uint nonce1, uint color2, uint nonce2);
+    event SolutionRequestedEdges(bytes32 indexed taskId, uint[] edges);
+    event SolutionSubmittedColors(bytes32 indexed taskId, uint submission, uint color1, uint nonce1, uint color2, uint nonce2);
     event SolutionAccepted(bytes32 indexed taskId, address proposer);
     event SolutionRejected(bytes32 indexed taskId, address proposer);
     event SolutionDelivered(bytes32 indexed taskId, uint[] colors);
@@ -51,57 +53,91 @@ contract GraphColoringProblem is TaskPool {
     function proposeSolution (bytes32 taskId, bytes32[] hashes) public notSolved(taskId) {
         var solution = graphs[taskId].solution;
         // another solution in progress
-        if (solution.status != SolutionStatus.Open && solution.status != SolutionStatus.Waiting) {
-            throw;
-        }
-        if (solution.proposer != 0 && solution.proposer != msg.sender) {
+        if (solution.proposer != 0) {
             throw;
         }
 
         solution.proposer = msg.sender;
-        solution.status = SolutionStatus.Pending;
-        solution.colorHashes = hashes;
-        solution.requestedEdge = 0;
-        SolutionProposed(taskId, solution.proposer, solution.colorHashes);
+        solution.status = SolutionStatus.Open;
+        solution.treeHashes = hashes;
+        solution.requestedEdges = new uint[](0);
+        solution.submissions = 0;
+        SolutionProposed(taskId, solution.proposer, solution.treeHashes);
     }
 
-    function requestEdge (bytes32 taskId, uint edge) public notSolved(taskId) isOwner(taskId) {
+    function requestEdges (bytes32 taskId, uint[] edges) public notSolved(taskId) isOwner(taskId) {
         var solution = graphs[taskId].solution;
-        if (solution.status != SolutionStatus.Pending || solution.requestedEdge != 0) {
+        if (solution.proposer == 0) {
             throw;
         }
-        if (edge >= graphs[taskId].vertices * graphs[taskId].vertices) {
+        if (solution.requestedEdges.length + edges.length > solution.treeHashes.length) {
             throw;
         }
-        // throw if edge is not present
-        uint edgeIndex = edge / 8;
-        uint edgeOffset = 7 - edge % 8;
-        uint filter = 2**edgeOffset;
-        if (uint(graphs[taskId].edges[edgeIndex]) & filter != filter) {
-            throw;
+        // TODO throw if edge is not present?
+        solution.status = SolutionStatus.Pending;
+        for (var i = 0; i < edges.length; i++) {
+            solution.requestedEdges.push(edges[i]);
         }
-        solution.requestedEdge = edge;
-        SolutionRequestedEdge(taskId, solution.requestedEdge);
+        SolutionRequestedEdges(taskId, edges);
     }
 
-    function submitColors (bytes32 taskId, uint color1, uint nonce1, uint color2, uint nonce2) public notSolved(taskId) {
+    /**
+     * merkeHashes TODO
+     */
+    function submitColors (bytes32 taskId, uint color1, uint nonce1, uint color2, uint nonce2,
+                           bytes32[] merkleHashes1, bytes32[] merkleHashes2) public notSolved(taskId) {
         var solution = graphs[taskId].solution;
         if (solution.proposer != msg.sender) {
             throw;
         }
-        if (solution.status != SolutionStatus.Pending || solution.requestedEdge == 0) {
+        if (solution.status != SolutionStatus.Pending || solution.submissions == solution.requestedEdges.length) {
             throw;
         }
         if (color1 == color2) {
             throw;
         }
         var (v1, v2) = getRequestedVertices(taskId);
-        if (sha3(taskId, v1, color1, nonce1) != solution.colorHashes[v1] ||
-            sha3(taskId, v2, color2, nonce2) != solution.colorHashes[v2]) {
+        uint i = 0;
+        /* example 'position' of merkle tree
+        0 1  2 3  4 5  6 7  8 9
+         0    1    2    3    4
+           0         1       2
+                0            1
+        */
+        // verify merkleHashes1
+        if (2**merkleHashes1.length < graphs[taskId].vertices) {
             throw;
         }
-        solution.status = SolutionStatus.Waiting;
-        SolutionSubmittedColors(taskId, color1, nonce1, color2, nonce2);
+        uint position = v1;
+        bytes32 hash = sha3(taskId, v1, color1, nonce1);
+        for (i = 0; i < merkleHashes1.length; i++) {
+            if (position % 2 == 0) {
+                hash = sha3(hash, merkleHashes1[i]);
+            } else {
+                hash = sha3(merkleHashes1[i], hash);
+            }
+            position = position / 2;
+        }
+        if (solution.treeHashes[solution.submissions] != hash) {
+            throw;
+        }
+
+        // verify merkleHashes2
+        position = v2;
+        hash = sha3(taskId, v2, color2, nonce2);
+        for (i = 0; i < merkleHashes2.length; i++) {
+            if (position % 2 == 0) {
+                hash = sha3(hash, merkleHashes2[i]);
+            } else {
+                hash = sha3(merkleHashes2[i], hash);
+            }
+            position = position / 2;
+        }
+        if (solution.treeHashes[solution.submissions] != hash) {
+            throw;
+        }
+        SolutionSubmittedColors(taskId, solution.submissions, color1, nonce1, color2, nonce2);
+        solution.submissions++;
     }
 
     function acceptSolution (bytes32 taskId) notSolved(taskId) isOwner(taskId) {
@@ -115,9 +151,9 @@ contract GraphColoringProblem is TaskPool {
 
     function rejectSolution (bytes32 taskId) notSolved(taskId) isOwner(taskId) {
         var solution = graphs[taskId].solution;
-        SolutionRejected(taskId, solution.proposer);
         solution.proposer = 0;
         solution.status = SolutionStatus.Open;
+        SolutionRejected(taskId, solution.proposer);
     }
 
     function deliverSolution (bytes32 taskId, uint[] colors) notSolved(taskId) {
@@ -148,20 +184,21 @@ contract GraphColoringProblem is TaskPool {
         return (graphs[taskId].vertices, graphs[taskId].edges);
     }
 
-    function getHashedVertices (bytes32 taskId) constant returns (bytes32[]) {
-        return graphs[taskId].solution.colorHashes;
+    function getTreeHashes (bytes32 taskId) constant returns (bytes32[]) {
+        return graphs[taskId].solution.treeHashes;
     }
 
     function getProposer (bytes32 taskId) constant returns (address) {
         return graphs[taskId].solution.proposer;
     }
 
-    function getRequestedEdge (bytes32 taskId) constant returns (uint) {
-        return graphs[taskId].solution.requestedEdge;
+    function getRequestedEdges (bytes32 taskId) constant returns (uint[]) {
+        return graphs[taskId].solution.requestedEdges;
     }
 
     function getRequestedVertices (bytes32 taskId) constant returns (uint, uint) {
-        uint edge = graphs[taskId].solution.requestedEdge;
+        uint position = graphs[taskId].solution.submissions;
+        uint edge = graphs[taskId].solution.requestedEdges[position];
         if (edge == 0) {
             throw;
         }
