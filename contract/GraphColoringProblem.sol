@@ -37,15 +37,13 @@ contract GraphColoringProblem is TaskPool {
     function createGraph (uint numVertices, bytes edges) public {
         bytes32 taskId = TaskPool.createTask();
         // check length of edges
-        if ((edges.length + 1) * 8 < numVertices * numVertices) {
+        if (edges.length * 8 < numVertices * numVertices) {
             throw;
         }
-        // check if first bit is set
-        /*if (edges[0] < 2**7) {
+        // check if first bit is set to ensure the correct lenth of edges
+        if (edges[0] < 2**7) {
             throw;
-        }*/
-        Debug("edges.length", taskId, 0, edges.length, '\x00');
-        Debug("edges[0]", taskId, 0, uint(edges[0]), '\x00');
+        }
         graphs[taskId].vertices = numVertices;
         graphs[taskId].edges = edges;
     }
@@ -80,15 +78,7 @@ contract GraphColoringProblem is TaskPool {
         uint edgeOffset = 7 - edge % 8;
         uint filter = 2**edgeOffset;
         if (uint(graphs[taskId].edges[edgeIndex]) & filter != filter) {
-            DebugMessage("requestEdge failed");
-            Debug("edge", taskId, 0, edge, '\x00');
-            Debug("edgeIndex", taskId, 0, edgeIndex, '\x00');
-            Debug("edgeOffset", taskId, 0, edgeOffset, '\x00');
-            Debug("filter", taskId, 0, filter, '\x00');
-            Debug("uint(graphs[taskId].edges[edgeIndex])", taskId, 0, uint(graphs[taskId].edges[edgeIndex]), '\x00');
-            Debug("& filter", taskId, 0, uint(graphs[taskId].edges[edgeIndex]) & filter, '\x00');
-            return;
-            /*throw;*/
+            throw;
         }
         solution.requestedEdge = edge;
         SolutionRequestedEdge(taskId, solution.requestedEdge);

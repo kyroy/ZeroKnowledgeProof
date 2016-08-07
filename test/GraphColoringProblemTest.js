@@ -60,9 +60,9 @@ let account2 = web3.eth.accounts[1];
 
 let taskId;
 
-describe.skip('GraphColoringProblem', function () {
+describe('GraphColoringProblem', function () {
   this.timeout(60000);
-  this.slow(1000);
+  this.slow(1500);
   before(initDebugFilters);
   after(endDebugFilters);
 
@@ -98,6 +98,13 @@ describe.skip('GraphColoringProblem', function () {
             { from: account1 });
         });
       });
+
+      it('should reject invalid adjacency matric', () => {
+        assert.throw(() => {
+          GraphColoringProblem.createGraph(4, '0x' + binaryToHex('0100100000010010').result,
+            { from: account1 });
+        });
+      });
     });
   });
 
@@ -110,12 +117,11 @@ describe.skip('GraphColoringProblem', function () {
         filter.stopWatching();
         done();
       });
-
-      GraphColoringProblem.createGraph(4, binaryToHex('0100100000010010').result,
+      GraphColoringProblem.createGraph(4, '0x' + binaryToHex('1100100000010010').result,
         { from: account1 });/*, value: web3.toWei(10, 'ether') */
     });
 
-    describe.only('workflow', () => {
+    describe('workflow', () => {
       let colors = [ 0, 1, 0, 2 ];
       let nonces = [ 14, 342, 5234, 432 ];
       let requestedEdge = 1;
@@ -227,7 +233,7 @@ describe.skip('GraphColoringProblem', function () {
         { from: web3.eth.accounts[0] });
     }
 
-    for (let i = 10; i < 1000; i += 10) {
+    for (let i = 10; i < 230; i += 10) {
       it('should create a graph of size ' + i + ', density 0.4', (done) => {
         assert.doesNotThrow(() => {
           insertRandomGraph(i, 0.4);
