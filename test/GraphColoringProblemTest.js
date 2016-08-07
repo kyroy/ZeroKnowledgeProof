@@ -1,6 +1,6 @@
 /* global describe, it, beforeEach, before, after */
 import { GraphColoringProblem, web3 } from '../contract/GraphColoringProblem.sol';
-import { getRandomHexAdjacencyMatrix, binaryToHex, hexToBinary } from './utils.js';
+import { getRandomHexAdjacencyMatrix, binaryToHex, hexToBinary } from '../app/js/utils.js';
 // import { Plan } from './utils.js';
 
 function leftPad (nr, n, str) {
@@ -110,7 +110,7 @@ describe('GraphColoringProblem', function () {
       });
     });
 
-    describe.only('getEdge()', () => {
+    describe('getEdge()', () => {
       it('should return true for an existing edge', () => {
         let binAdjacencyMatrix = hexToBinary(hexAdjacencyMatrix).result;
         let edge = binAdjacencyMatrix.slice(1).indexOf('1') + 1;
@@ -255,7 +255,7 @@ describe('GraphColoringProblem', function () {
     }
 
     for (let i = 10; i < 230; i += 10) {
-      it('should create a graph of size ' + i + ', density 0.4', (done) => {
+      it('should create a graph of size ' + i + ', density 0.4', (done) => { // jshint ignore:line
         assert.doesNotThrow(() => {
           insertRandomGraph(i, 0.4);
         });
