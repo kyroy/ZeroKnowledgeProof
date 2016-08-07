@@ -77,7 +77,7 @@ export function binaryToHex (s) {
 // If 'valid' is true, the converted binary string can be obtained by
 // the 'result' key of the returned object
 export function hexToBinary(s) {
-    var i, k, part, ret = '';
+    var i = 0, k, part, ret = '';
     // lookup table for easier conversion. '0' characters are padded for '1' to '7'
     var lookupTable = {
         '0': '0000', '1': '0001', '2': '0010', '3': '0011', '4': '0100',
@@ -87,7 +87,10 @@ export function hexToBinary(s) {
         'A': '1010', 'B': '1011', 'C': '1100', 'D': '1101',
         'E': '1110', 'F': '1111'
     };
-    for (i = 0; i < s.length; i += 1) {
+    if (s.startsWith('0x')) {
+      i = 2;
+    }
+    for (; i < s.length; i += 1) {
         if (lookupTable.hasOwnProperty(s[i])) {
             ret += lookupTable[s[i]];
         } else {
