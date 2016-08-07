@@ -1,6 +1,6 @@
 /* global describe, it, beforeEach, before, after */
 import { GraphColoringProblem, web3 } from '../contract/GraphColoringProblem.sol';
-import { getRandomHexAdjacencyMatrix, binaryToHex } from './utils.js';
+import { getRandomHexAdjacencyMatrix, binaryToHex, hexToBinary } from './utils.js';
 // import { Plan } from './utils.js';
 
 function leftPad (nr, n, str) {
@@ -66,6 +66,9 @@ describe('GraphColoringProblem', function () {
   before(initDebugFilters);
   after(endDebugFilters);
 
+  let hexAdjacencyMatrix;
+  let size = 4;
+
   describe('general', function () {
     beforeEach((done) => {
       let filter = GraphColoringProblem.TaskCreated({});
@@ -75,8 +78,8 @@ describe('GraphColoringProblem', function () {
         filter.stopWatching();
         done();
       });
-
-      GraphColoringProblem.createGraph(4, getRandomHexAdjacencyMatrix(4, 0.5),
+      hexAdjacencyMatrix = getRandomHexAdjacencyMatrix(size, 0.5);
+      GraphColoringProblem.createGraph(size, hexAdjacencyMatrix,
         { from: account1 });/*, value: web3.toWei(10, 'ether') */
     });
 
@@ -88,7 +91,7 @@ describe('GraphColoringProblem', function () {
         });
         assert.equal(account1, GraphColoringProblem.getOwner(taskId));
         // assert.equal(web3.toWei(10, 'ether'), GraphColoringProblem.getReward(taskId).toNumber());
-        assert.equal(4, graph[0].toNumber());
+        assert.equal(size, graph[0].toNumber());
         assert.equal('string', typeof graph[1]);
       });
 
@@ -104,6 +107,24 @@ describe('GraphColoringProblem', function () {
           GraphColoringProblem.createGraph(4, '0x' + binaryToHex('0100100000010010').result,
             { from: account1 });
         });
+      });
+    });
+
+    describe.only('getEdge()', () => {
+      it('should return true for an existing edge', () => {
+        let binAdjacencyMatrix = hexToBinary(hexAdjacencyMatrix).result;
+        let edge = binAdjacencyMatrix.slice(1).indexOf('1') + 1;
+        let v1 = parseInt(edge / size);
+        let v2 = edge % size;
+        assert.isTrue(GraphColoringProblem.getEdge(taskId, v1, v2));
+      });
+
+      it('should return false for a not existing edge', () => {
+        let binAdjacencyMatrix = hexToBinary(hexAdjacencyMatrix).result;
+        let edge = binAdjacencyMatrix.slice(1).indexOf('0') + 1;
+        let v1 = parseInt(edge / size);
+        let v2 = edge % size;
+        assert.isFalse(GraphColoringProblem.getEdge(taskId, v1, v2));
       });
     });
   });

@@ -128,7 +128,9 @@ contract GraphColoringProblem is TaskPool {
         if (solution.proposer != msg.sender) {
             throw;
         }
-        // TODO check colors length
+        if (colors.length != graphs[taskId].vertices) {
+            throw;
+        }
         // test that the solution is correct may be too expensive
         solution.colors = colors;
         tasks[taskId].solved = true;
@@ -149,14 +151,6 @@ contract GraphColoringProblem is TaskPool {
     function getHashedVertices (bytes32 taskId) constant returns (bytes32[]) {
         return graphs[taskId].solution.colorHashes;
     }
-    /*function getHashedVertices (bytes32 taskId) constant returns (bytes32[]) {
-        Vertex[] vertices = graphs[taskId].vertices;
-        bytes32[] memory hashes = new bytes32[](vertices.length);
-        for (var i = 0; i < vertices.length; i++) {
-            hashes[i] = vertices[i].colorHash;
-        }
-        return hashes;
-    }*/
 
     function getProposer (bytes32 taskId) constant returns (address) {
         return graphs[taskId].solution.proposer;
@@ -176,10 +170,16 @@ contract GraphColoringProblem is TaskPool {
         return (v1, v2);
     }
 
-    /*function getEdge (bytes32 taskId, uint v1, uint v2) constant returns (bool) {
-        var length = graphs[taskId].vertices.length;
-        return graphs[taskId].edges[v1 * length + v2];
-    }*/
+    function getEdge (bytes32 taskId, uint v1, uint v2) constant returns (bool) {
+        uint edge = v1 * graphs[taskId].vertices + v2;
+        if (edge >= graphs[taskId].vertices * graphs[taskId].vertices) {
+            throw;
+        }
+        uint edgeIndex = edge / 8;
+        uint edgeOffset = 7 - edge % 8;
+        uint filter = 2**edgeOffset;
+        return uint(graphs[taskId].edges[edgeIndex]) & filter == filter;
+    }
 
     function getSolution (bytes32 taskId) constant returns (uint[]) {
         return graphs[taskId].solution.colors;
