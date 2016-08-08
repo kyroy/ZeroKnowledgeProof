@@ -1,6 +1,7 @@
 /* global describe, it, beforeEach, before, after */
 import { GraphColoringProblem, web3 } from '../contract/GraphColoringProblem.sol';
-import { getRandomHexAdjacencyMatrix, binaryToHex, hexToBinary, toNumber } from '../app/js/utils.js';
+import { getRandomHexAdjacencyMatrix, binaryToHex, hexToBinary, toNumber }
+from '../app/js/utils.js';
 // import { Plan } from './utils.js';
 
 function leftPad (nr, n, str) {
@@ -138,60 +139,83 @@ describe('GraphColoringProblem', function () {
         filter.stopWatching();
         done();
       });
+      // 1 1 0 0
+      // 1 0 0 0
+      // 0 0 0 1
+      // 0 0 1 0
       GraphColoringProblem.createGraph(4, '0x' + binaryToHex('1100100000010010').result,
         { from: account1 });/*, value: web3.toWei(10, 'ether') */
     });
 
     describe.only('workflow', () => {
       let colors = [ 0, 1, 0, 2 ];
-      let nonces = [ 14, 342, 5234, 432 ];
-      let requestedEdge = 1;
-      let hashes = [];
+      let nonces1 = [ 14, 342, 5234, 432 ];
+      let nonces2 = [ 34542, 4213, 5431324, 134 ];
+      let requestedEdge1 = 1;
+      let requestedEdge2 = 11;
+      let hashes1 = [];
+      let hashes2 = [];
 
       it('should propose a solution', (done) => {
-        hashes.push([
-          solSha3(taskId, 0, colors[0], nonces[0]),
-          solSha3(taskId, 1, colors[1], nonces[1]),
-          solSha3(taskId, 2, colors[2], nonces[2]),
-          solSha3(taskId, 3, colors[3], nonces[3])
+        hashes1.push([
+          solSha3(taskId, 0, colors[0], nonces1[0]),
+          solSha3(taskId, 1, colors[1], nonces1[1]),
+          solSha3(taskId, 2, colors[2], nonces1[2]),
+          solSha3(taskId, 3, colors[3], nonces1[3])
         ]);
-        hashes.push([
-          solSha3(hashes[0][0], hashes[0][1]),
-          solSha3(hashes[0][2], hashes[0][3])
+        hashes1.push([
+          solSha3(hashes1[0][0], hashes1[0][1]),
+          solSha3(hashes1[0][2], hashes1[0][3])
         ]);
-        hashes.push([
-          solSha3(hashes[1][0], hashes[1][1])
+        hashes1.push([
+          solSha3(hashes1[1][0], hashes1[1][1])
+        ]);
+
+        hashes2.push([
+          solSha3(taskId, 0, colors[0], nonces2[0]),
+          solSha3(taskId, 1, colors[1], nonces2[1]),
+          solSha3(taskId, 2, colors[2], nonces2[2]),
+          solSha3(taskId, 3, colors[3], nonces2[3])
+        ]);
+        hashes2.push([
+          solSha3(hashes2[0][0], hashes2[0][1]),
+          solSha3(hashes2[0][2], hashes2[0][3])
+        ]);
+        hashes2.push([
+          solSha3(hashes2[1][0], hashes2[1][1])
         ]);
 
         assert.doesNotThrow(() => {
-          GraphColoringProblem.proposeSolution(taskId, [hashes[2][0]], { from: account2 });
+          GraphColoringProblem.proposeSolution(taskId, [hashes1[2][0], hashes2[2][0]],
+            { from: account2 });
         });
         let filter = GraphColoringProblem.SolutionProposed({});
         filter.watch((_, result) => {
           assert.equal(taskId, result.args.taskId);
           assert.equal(account2, result.args.proposer);
-          assert.deepEqual([hashes[2][0]], result.args.hashes);
+          assert.deepEqual([hashes1[2][0], hashes2[2][0]], result.args.hashes);
           filter.stopWatching();
           done();
         });
       });
       it('should request an edge', (done) => {
         assert.doesNotThrow(() => {
-          GraphColoringProblem.requestEdges(taskId, [requestedEdge], { from: account1 });
+          GraphColoringProblem.requestEdges(taskId, [requestedEdge1, requestedEdge2],
+            { from: account1 });
         });
         let filter = GraphColoringProblem.SolutionRequestedEdges({});
         filter.watch((_, result) => {
           // event SolutionRequestedEdge(bytes32 indexed taskId, uint edge);
           assert.equal(taskId, result.args.taskId);
-          assert.deepEqual([requestedEdge], result.args.edges.map(toNumber));
+          assert.deepEqual([requestedEdge1, requestedEdge2], result.args.edges.map(toNumber));
           filter.stopWatching();
           done();
         });
       });
-      it('should submit colors', (done) => {
+      it('should submit colors 1/2', (done) => {
         assert.doesNotThrow(() => {
-          GraphColoringProblem.submitColors(taskId, colors[0], nonces[0], colors[1], nonces[1],
-            [hashes[0][1], hashes[1][1]], [hashes[0][0], hashes[1][1]],
+          GraphColoringProblem.submitColors(taskId, colors[0], nonces1[0], colors[1], nonces1[1],
+            [hashes1[0][1], hashes1[1][1]], [hashes1[0][0], hashes1[1][1]],
             { from: account2 });
         });
         let filter = GraphColoringProblem.SolutionSubmittedColors({});
@@ -201,9 +225,29 @@ describe('GraphColoringProblem', function () {
           assert.equal(taskId, result.args.taskId);
           assert.equal(0, result.args.submission.toNumber());
           assert.equal(colors[0], result.args.color1.toNumber());
-          assert.equal(nonces[0], result.args.nonce1.toNumber());
+          assert.equal(nonces1[0], result.args.nonce1.toNumber());
           assert.equal(colors[1], result.args.color2.toNumber());
-          assert.equal(nonces[1], result.args.nonce2.toNumber());
+          assert.equal(nonces1[1], result.args.nonce2.toNumber());
+          filter.stopWatching();
+          done();
+        });
+      });
+      it('should submit colors 2/2', (done) => {
+        assert.doesNotThrow(() => {
+          GraphColoringProblem.submitColors(taskId, colors[2], nonces2[2], colors[3], nonces2[3],
+            [hashes2[0][3], hashes2[1][0]], [hashes2[0][2], hashes2[1][0]],
+            { from: account2 });
+        });
+        let filter = GraphColoringProblem.SolutionSubmittedColors({});
+        filter.watch((_, result) => {
+          // event SolutionSubmittedColors(bytes32 indexed taskId, uint color1, uint nonce1,
+          //                               uint color2, uint nonce2);
+          assert.equal(taskId, result.args.taskId);
+          assert.equal(1, result.args.submission.toNumber());
+          assert.equal(colors[2], result.args.color1.toNumber());
+          assert.equal(nonces2[2], result.args.nonce1.toNumber());
+          assert.equal(colors[3], result.args.color2.toNumber());
+          assert.equal(nonces2[3], result.args.nonce2.toNumber());
           filter.stopWatching();
           done();
         });

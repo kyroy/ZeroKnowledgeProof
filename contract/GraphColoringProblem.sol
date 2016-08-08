@@ -123,6 +123,9 @@ contract GraphColoringProblem is TaskPool {
         }
 
         // verify merkleHashes2
+        if (2**merkleHashes2.length < graphs[taskId].vertices) {
+            throw;
+        }
         position = v2;
         hash = sha3(taskId, v2, color2, nonce2);
         for (i = 0; i < merkleHashes2.length; i++) {
