@@ -1,17 +1,20 @@
-/*
- *
- * @author Dennis Kuhnert
- */
-
 import "TaskPool.sol";
 
+/**
+ * @title Graph Coloring Problem
+ * @author Dennis Kuhnert (kyroy)
+ *
+ * <short description>
+ *
+ * <detailed description>
+ *
+ */
 contract GraphColoringProblem is TaskPool {
 
     struct Graph {
-        // number of vertices
-        uint vertices;
-        // adjacency matrix with the length of |vertices| * |vertices|
-        bytes edges;
+        uint vertices; ///< number of vertices
+        bytes edges; ///< adjacency matrix with the length of |vertices| * |vertices|
+                     ///< where the first bit is always set to ensure the correct length
         Solution solution;
     }
 
@@ -20,8 +23,7 @@ contract GraphColoringProblem is TaskPool {
     struct Solution {
         address proposer;
         SolutionStatus status;
-        // array of merke tree hashes
-        bytes32[] treeHashes;
+        bytes32[] treeHashes; ///< array of merke tree hashes
         uint[] requestedEdges;
         uint submissions;
         uint[] colors;
@@ -30,23 +32,30 @@ contract GraphColoringProblem is TaskPool {
     mapping (bytes32 => Graph) graphs;
 
     event SolutionProposed(bytes32 indexed taskId, address indexed proposer, bytes32[] hashes);
-    event SolutionRequestedEdges(bytes32 indexed taskId, uint[] edges);
+    event SolutionRequestedEdges(bytes32 indexed taskId, uint submissions, uint[] edges);
     event SolutionSubmittedColors(bytes32 indexed taskId, uint submission, uint color1, uint nonce1, uint color2, uint nonce2);
     event SolutionAccepted(bytes32 indexed taskId, address proposer);
     event SolutionRejected(bytes32 indexed taskId, address proposer);
     event SolutionDelivered(bytes32 indexed taskId, uint[] colors);
 
-    function createGraph (uint numVertices, bytes edges) public {
+    /**
+     * @notice <user description>
+     *
+     * @dev <developer description>
+     *
+     * @param vertices The number of vertices of the graph.
+     * @param edges A hex number where each bit represents the existence of an edge.
+                    Right padded with zeroes.
+     *              TODO structure (adj matrix)
+     * @return The identifier of the task, also used to identify the graph.
+     */
+    function createGraph (uint vertices, bytes edges) public {
         bytes32 taskId = TaskPool.createTask();
         // check length of edges
-        if (edges.length * 8 < numVertices * numVertices) {
+        if (edges.length * 8 < vertices * vertices) {
             throw;
         }
-        // check if first bit is set to ensure the correct lenth of edges
-        if (edges[0] < 2**7) {
-            throw;
-        }
-        graphs[taskId].vertices = numVertices;
+        graphs[taskId].vertices = vertices;
         graphs[taskId].edges = edges;
     }
 
@@ -78,7 +87,7 @@ contract GraphColoringProblem is TaskPool {
         for (var i = 0; i < edges.length; i++) {
             solution.requestedEdges.push(edges[i]);
         }
-        SolutionRequestedEdges(taskId, edges);
+        SolutionRequestedEdges(taskId, solution.submissions, solution.requestedEdges);
     }
 
     /**
@@ -199,15 +208,23 @@ contract GraphColoringProblem is TaskPool {
         return graphs[taskId].solution.requestedEdges;
     }
 
-    function getRequestedVertices (bytes32 taskId) constant returns (uint, uint) {
-        uint position = graphs[taskId].solution.submissions;
-        uint edge = graphs[taskId].solution.requestedEdges[position];
+    function getRequestedVerticesOfSubmission (bytes32 taskId, uint submission) constant returns (uint, uint) {
+        uint edge = graphs[taskId].solution.requestedEdges[submission];
         if (edge == 0) {
             throw;
         }
         uint v2 = edge % graphs[taskId].vertices;
         uint v1 = (edge - v2) / graphs[taskId].vertices;
         return (v1, v2);
+    }
+
+    function getRequestedVertices (bytes32 taskId) constant returns (uint, uint) {
+        uint position = graphs[taskId].solution.submissions;
+        return getRequestedVerticesOfSubmission(taskId, position);
+    }
+
+    function getSubmissionCount (bytes32 taskId) constant returns (uint) {
+        return graphs[taskId].solution.submissions;
     }
 
     function getEdge (bytes32 taskId, uint v1, uint v2) constant returns (bool) {

@@ -1,6 +1,6 @@
 /* global angular, jQuery */
 import {web3, GraphColoringProblem} from '../../contract/GraphColoringProblem.sol';
-import { hexToBinary } from './utils.js';
+import { hexToBinary, toNumber } from './utils.js';
 angular.module('ZeroKnowledgeProof').factory('graphs', function ($rootScope) {
   let graphs = {
     taskIds: [],
@@ -25,7 +25,7 @@ angular.module('ZeroKnowledgeProof').factory('graphs', function ($rootScope) {
    * Adds or updates a graph.
    */
   graphs.update = function (taskId, owner, reward, solved, numVertices, edges,
-                            proposer, hashes = [], requestedEdge = 0, colors = []) {
+                            proposer, hashes = [], requestedEdges = [], colors = []) {
     let graph = graphs.list.find(function (elem) {
       return taskId === elem.taskId;
     });
@@ -38,7 +38,7 @@ angular.module('ZeroKnowledgeProof').factory('graphs', function ($rootScope) {
       edges: edges,
       proposer: proposer,
       hashes: [],
-      requestedEdge: requestedEdge,
+      requestedEdges: requestedEdges,
       colors: colors
       // mySolution // stored solution for the problem of this client
     };
@@ -55,7 +55,6 @@ angular.module('ZeroKnowledgeProof').factory('graphs', function ($rootScope) {
     console.log('loadGraphById', taskId);
     let graph = GraphColoringProblem.getGraph(taskId);
     let edges = hexToBinary(graph[1].slice(2)).result;
-    edges = edges.slice(edges.indexOf('1'));
     return graphs.update(taskId,
       GraphColoringProblem.getOwner(taskId),
       GraphColoringProblem.getReward(taskId).toNumber(),
@@ -63,8 +62,8 @@ angular.module('ZeroKnowledgeProof').factory('graphs', function ($rootScope) {
       graph[0].toNumber(),
       edges,
       GraphColoringProblem.getProposer(taskId),
-      GraphColoringProblem.getHashedVertices(taskId),
-      GraphColoringProblem.getRequestedEdge(taskId).toNumber(),
+      GraphColoringProblem.getTreeHashes(taskId),
+      GraphColoringProblem.getRequestedEdges(taskId).map(toNumber),
       GraphColoringProblem.getSolution(taskId)
     );
   };
@@ -104,22 +103,47 @@ angular.module('ZeroKnowledgeProof').factory('graphs', function ($rootScope) {
     }
   });
   // event SolutionRequestedEdge(bytes32 indexed taskId, uint edge);
-  let eventSolutionRequestedEdge = GraphColoringProblem.SolutionRequestedEdge({});
-  eventSolutionRequestedEdge.watch((_, result) => {
+  let eventSolutionRequestedEdges = GraphColoringProblem.SolutionRequestedEdges({});
+  eventSolutionRequestedEdges.watch((_, result) => {
     console.log('eventSolutionRequestedEdge', result.args);
     let graph = graphs.list.find(function (elem) {
       return result.args.taskId === elem.taskId;
     });
     if (typeof graph !== 'undefined' && typeof graph.mySolution !== 'undefined') {
-      // use getter to get nodes in correct order
-      let [v1, v2] = GraphColoringProblem.getRequestedVertices(result.args.taskId);
-      try {
-        GraphColoringProblem.submitColors(result.args.taskId,
-          graph.mySolution[v1].color, graph.mySolution[v1].nonce,
-          graph.mySolution[v2].color, graph.mySolution[v2].nonce,
-          { from: graph.proposer });
-      } catch (e) {
-        console.error('graphsFactory: answer for requested edge failed', e);
+      // send all missing submissions
+      for (let i = result.args.submissions.toNumber(); i < result.args.edges.length; i++) {
+        // use getter to get nodes in correct order
+        let vertices = GraphColoringProblem.getRequestedVertices(result.args.taskId).map(toNumber);
+        let [v1, v2] = vertices;
+        let merkleHashes = [[], []];
+        for (let j = 0; j < 2; j++) {
+          // select the counterpart of each level in the merkle tree
+          // without the root hash
+          for (let k = 0; k < graph.myTreeHashes[i].length - 1; k++) {
+            if (vertices[j] % 2 === 0) {
+              if (vertices[j] + 1 < graph.myTreeHashes[i][k].length) {
+                merkleHashes[j].push(graph.myTreeHashes[i][k][vertices[j] + 1]);
+              } else {
+                // if there is no counterpart, we use 0x00
+                merkleHashes[j].push(
+                  '0x0000000000000000000000000000000000000000000000000000000000000000'
+                );
+              }
+            } else {
+              merkleHashes[j].push(graph.myTreeHashes[i][k][vertices[j] - 1]);
+            }
+            vertices[j] = parseInt(vertices[j] / 2);
+          }
+        }
+        try {
+          GraphColoringProblem.submitColors(result.args.taskId,
+            graph.mySolution[v1], graph.myNonces[i][v1],
+            graph.mySolution[v2], graph.myNonces[i][v2],
+            merkleHashes[0], merkleHashes[1],
+            { from: graph.proposer });
+        } catch (e) {
+          console.error('graphsFactory: answer for requested edge failed', e);
+        }
       }
     }
   });

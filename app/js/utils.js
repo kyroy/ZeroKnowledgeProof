@@ -1,3 +1,64 @@
+import {web3} from '../../contract/GraphColoringProblem.sol';
+
+function leftPad (nr, n, str) {
+  return Array(n - String(nr).length + 1).join(str || '0') + nr;
+}
+
+export function solSha3 (...args) {
+  args = args.map(arg => {
+    if (typeof arg === 'string') {
+      if (arg.substring(0, 2) === '0x') {
+        return arg.slice(2);
+      } else {
+        return web3.toHex(arg).slice(2);
+      }
+    }
+
+    if (typeof arg === 'number') {
+      if (arg < 0) {
+        return leftPad((arg >>> 0).toString(16), 64, 'F');
+      }
+      return leftPad((arg).toString(16), 64, 0);
+    } else {
+      return '';
+    }
+  });
+
+  args = args.join('');
+
+  return '0x' + web3.sha3(args, { encoding: 'hex' });
+}
+
+function calculateMerkeTree (taskId, colors, nonces) {
+  let tree = [];
+  let hashes = [];
+  for (let i = 0; i < colors.length; i++) {
+    hashes.push(solSha3(taskId, i, colors[i], nonces[i]));
+  }
+  tree.push(hashes);
+  while (hashes.length > 1) {
+    let oldHashes = hashes;
+    hashes = [];
+    for (let i = 0; i < oldHashes.length; i += 2) {
+      let secondHash = '0x0000000000000000000000000000000000000000000000000000000000000000';
+      if (i + 1 < oldHashes.length) {
+        secondHash = oldHashes[i + 1];
+      }
+      hashes.push(solSha3(oldHashes[i], secondHash));
+    }
+    tree.push(hashes);
+  }
+  return tree;
+}
+
+export function calculateMerkleTrees (taskId, colors, nonces) {
+  let trees = [];
+  for (let n of nonces) {
+    trees.push(calculateMerkeTree(taskId, colors, n));
+  }
+  return trees;
+}
+
 // converts binary string to a hexadecimal string
 // returns an object with key 'valid' to a boolean value, indicating
 // if the string is a valid binary string.
@@ -46,7 +107,7 @@ export function binaryToHex (s) {
 
 export function getRandomHexAdjacencyMatrix (numVertices, density) {
   let edgeArray = [];
-  let edges = '1';
+  let edges = '';
   for (let i = 0; i < numVertices * numVertices; i++) {
     edgeArray.push(Math.random() < density && parseInt(i / numVertices) !== i % numVertices);
   }
@@ -55,7 +116,7 @@ export function getRandomHexAdjacencyMatrix (numVertices, density) {
       edgeArray[i * numVertices + j] = edgeArray[j * numVertices + i];
     }
   }
-  for (let i = 1; i < numVertices * numVertices; i++) {
+  for (let i = 0; i < numVertices * numVertices; i++) {
     edges += (edgeArray[i] ? '1' : '0');
   }
   while (edges.length % 8 !== 0) {

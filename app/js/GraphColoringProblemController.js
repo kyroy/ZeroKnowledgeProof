@@ -1,35 +1,6 @@
 /* global angular, cytoscape, jQuery */
 import {web3, GraphColoringProblem} from '../../contract/GraphColoringProblem.sol';
-import { getRandomHexAdjacencyMatrix } from './utils.js';
-
-function leftPad (nr, n, str) {
-  return Array(n - String(nr).length + 1).join(str || '0') + nr;
-}
-
-function solSha3 (...args) {
-  args = args.map(arg => {
-    if (typeof arg === 'string') {
-      if (arg.substring(0, 2) === '0x') {
-        return arg.slice(2);
-      } else {
-        return web3.toHex(arg).slice(2);
-      }
-    }
-
-    if (typeof arg === 'number') {
-      if (arg < 0) {
-        return leftPad((arg >>> 0).toString(16), 64, 'F');
-      }
-      return leftPad((arg).toString(16), 64, 0);
-    } else {
-      return '';
-    }
-  });
-
-  args = args.join('');
-
-  return '0x' + web3.sha3(args, { encoding: 'hex' });
-}
+import { getRandomHexAdjacencyMatrix, calculateMerkleTrees, toNumber } from './utils.js';
 
 angular.module('ZeroKnowledgeProof').controller('GraphColoringProblemController',
   function (graphs, $route, $routeParams, $scope, $timeout) {
@@ -46,6 +17,7 @@ angular.module('ZeroKnowledgeProof').controller('GraphColoringProblemController'
     ];
 
     this.proposeSolution = function () {
+      // TODO randomize colors in different solutions
       if (typeof this.cytoscape === 'undefined') {
         console.error('proposeSolution: cytoscape undefined');
         return;
@@ -53,19 +25,15 @@ angular.module('ZeroKnowledgeProof').controller('GraphColoringProblemController'
       let vertices = this.cytoscape.collection('node').map(function (elem) {
         return elem.data();
       });
-      let hashes = [];
+      // collect colors
       let colors = [];
       for (let vertex of vertices) {
         if (typeof vertex.color === 'undefined' || vertex.color < 0) {
           console.error('proposeSolution: color for node ' + vertex.id + ' not set');
           return;
         }
-        let nonce = parseInt(Math.random() * 100);
-        hashes.push(solSha3(this.currentTaskId, parseInt(vertex.id), vertex.color, nonce));
-        colors.push({ nonce: nonce, color: vertex.color });
+        colors.push(vertex.color);
       }
-      let graph = graphs.get(this.currentTaskId);
-      graph.mySolution = colors;
 
       // check solution
       let edges = this.cytoscape.collection('edge').map(function (elem) {
@@ -80,6 +48,28 @@ angular.module('ZeroKnowledgeProof').controller('GraphColoringProblemController'
                         v2 + ' are equal: ' + colors[v1]);
           return;
         }
+      }
+
+      // generate all nonces
+      let nonces = [];
+      for (let i = 0; i < 20; i++) {
+        let ns = [];
+        for (let j = 0; j < colors.length; j++) {
+          ns.push(parseInt(Math.random() * 100));
+        }
+        nonces.push(ns);
+      }
+
+      let trees = calculateMerkleTrees(this.currentTaskId, colors, nonces);
+      let graph = graphs.get(this.currentTaskId);
+      graph.mySolution = colors;
+      graph.myNonces = nonces;
+      graph.myTreeHashes = trees;
+
+      // get root hashes
+      let hashes = [];
+      for (let tree of trees) {
+        hashes.push(tree[tree.length - 1][0]);
       }
 
       try {
@@ -103,7 +93,7 @@ angular.module('ZeroKnowledgeProof').controller('GraphColoringProblemController'
         });
       }
       for (let i = 0; i < numVertices; i++) {
-        for (let j = i + 1; j < numVertices; j++) {
+        for (let j = i; j < numVertices; j++) {
           if (edges[i * numVertices + j] === '1') {
             elements.push({
               data: {
@@ -149,7 +139,7 @@ angular.module('ZeroKnowledgeProof').controller('GraphColoringProblemController'
           if (web3.eth.accounts.indexOf(graph.owner) !== -1) {
             let requestedEdge = v1 * graph.numVertices + v2;
             try {
-              GraphColoringProblem.requestEdge(this.currentTaskId, requestedEdge,
+              GraphColoringProblem.requestEdges(this.currentTaskId, [requestedEdge],
                 { from: graph.owner });
               this.cytoscape.$('node#' + v1).style({ 'background-color': 'black' });
               this.cytoscape.$('node#' + v2).style({ 'background-color': 'black' });
@@ -204,7 +194,10 @@ angular.module('ZeroKnowledgeProof').controller('GraphColoringProblemController'
     eventSolutionSubmittedColors.watch((_, result) => {
       console.log('eventSolutionSubmittedColors', result.args);
       if (result.args.taskId === this.currentTaskId && typeof this.cytoscape !== 'undefined') {
-        let [v1, v2] = GraphColoringProblem.getRequestedVertices(this.currentTaskId);
+        let [v1, v2] = GraphColoringProblem.getRequestedVerticesOfSubmission(
+          this.currentTaskId,
+          result.args.submission.toNumber()
+        ).map(toNumber);
         this.cytoscape.$('node#' + v1).style({
           'background-color': colorArray[result.args.color1.toNumber()]
         });
