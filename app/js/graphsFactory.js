@@ -18,7 +18,6 @@ angular.module('ZeroKnowledgeProof').factory('graphs', function ($rootScope) {
         return graph;
       }
     }
-    return;
   };
 
   /**
@@ -147,14 +146,6 @@ angular.module('ZeroKnowledgeProof').factory('graphs', function ($rootScope) {
       }
     }
   });
-  // event SolutionSubmittedColors(bytes32 indexed taskId, uint color1, uint nonce1,
-  //                               uint color2, uint nonce2);
-  // let eventSolutionSubmittedColors = GraphColoringProblem.SolutionSubmittedColors({});
-  // eventSolutionSubmittedColors.watch((_, result) => {
-  //   console.log('eventSolutionSubmittedColors', result.args);
-  //   if (result.args.taskId === this.currentTaskId) {
-  //   }
-  // });
   // event SolutionAccepted(bytes32 indexed taskId, address proposer);
   let eventSolutionAccepted = GraphColoringProblem.SolutionAccepted({});
   eventSolutionAccepted.watch((_, result) => {
