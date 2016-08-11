@@ -1,41 +1,27 @@
-header, main, footer {
-  padding-left: 240px;
+.options-right .row {
+  margin-bottom: 0;
 }
 
-@media only screen and (max-width : 992px) {
-  header, main, footer {
-    padding-left: 0;
-  }
-}
-
-.active {
-  background-color: gray !important;
-  color: white !important;
-}
-
-/* mini nav */
-
-.mininav, .mininav nav {
-  height: 20px;
-  line-height: 20px;
+.options-right button {
+  margin-left: 5px;
 }
 
 /* BEGIN enlarge graph */
-body, div#view {
+body, div#view, main, .container, .container.row, .graph-container {
   display: flex;
   min-height: 100vh;
   flex-direction: column;
 }
 
-main {
+/*main, .container {
   flex: 1 0 auto;
   display: flex;
   flex-direction: column;
-}
+}*/
 
 /* graph */
 #graph {
-  min-height: 200px;*/
+  min-height: 200px;
   width: 100%;
   flex: 1 0 auto;
 }

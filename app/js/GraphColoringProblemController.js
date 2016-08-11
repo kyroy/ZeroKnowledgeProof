@@ -1,10 +1,12 @@
 /* global angular, cytoscape, jQuery */
 import {web3, GraphColoringProblem} from '../../contract/GraphColoringProblem.sol';
-import { getRandomHexAdjacencyMatrix, calculateMerkleTrees, toNumber } from './utils.js';
+import { getRandomHexAdjacencyMatrix, calculateMerkleTrees, toNumber, showWarning }
+  from './utils.js';
 
 angular.module('ZeroKnowledgeProof').controller('GraphColoringProblemController',
   function (graphs, $route, $routeParams, $scope, $timeout) {
     this.currentTaskId = 0;
+    this.currentGraph = undefined;
     this.graphs = graphs;
     this.cytoscape = undefined;
     this.balance = 0;
@@ -15,6 +17,25 @@ angular.module('ZeroKnowledgeProof').controller('GraphColoringProblemController'
     const colorArray = [
       'green', 'red', 'blue'
     ];
+
+    // NEW GRAPH
+    this.newGraphVertices = undefined;
+    this.newGraphDensity = undefined;
+    this.newGraphSubmit = function () {
+      this.newGraphVertices = parseInt(this.newGraphVertices);
+      if (
+        typeof this.newGraphVertices === 'undefined' ||
+        typeof this.newGraphDensity === 'undefined' ||
+        this.newGraphVertices <= 0 ||
+        this.newGraphDensity < 0 ||
+        this.newGraphDensity > 1
+      ) {
+        showWarning('Invalid input');
+        return;
+      }
+      this.insertStubData(this.newGraphVertices, this.newGraphDensity);
+    };
+    // END NEW GRAPH
 
     this.proposeSolution = function () {
       // TODO randomize colors in different solutions
@@ -82,6 +103,7 @@ angular.module('ZeroKnowledgeProof').controller('GraphColoringProblemController'
 
     this.setGraph = function (task) {
       this.currentTaskId = task.taskId;
+      this.currentGraph = task;
       $route.updateParams({ id: this.currentTaskId });
 
       let [numVertices, edges] = [task.numVertices, task.edges];
@@ -181,9 +203,9 @@ angular.module('ZeroKnowledgeProof').controller('GraphColoringProblemController'
       return false;
     };
 
-    this.insertStubData = function () {
-      let num = parseInt(Math.random() * 9 + 4);
-      let edges = getRandomHexAdjacencyMatrix(num, 0.3);
+    this.insertStubData = function (vertices, density = 0.3) {
+      let num = vertices || parseInt(Math.random() * 9 + 4);
+      let edges = getRandomHexAdjacencyMatrix(num, density);
       GraphColoringProblem.createGraph(num, edges,
         { from: web3.eth.accounts[0], value: web3.toWei(0.5, 'ether') });
     };

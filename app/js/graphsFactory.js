@@ -23,21 +23,22 @@ angular.module('ZeroKnowledgeProof').factory('graphs', function ($rootScope) {
   /**
    * Adds or updates a graph.
    */
-  graphs.update = function (taskId, owner, reward, solved, numVertices, edges,
-                            proposer, hashes = [], requestedEdges = [], colors = []) {
+  graphs.update = function (taskId, owner, reward, solved, numVertices, edges, proposer,
+                            hashes = [], requestedEdges = [], submissions = 0, colors = []) {
     let graph = graphs.list.find(function (elem) {
       return taskId === elem.taskId;
     });
     let newGraph = {
       taskId: taskId,
       owner: owner,
-      reward: reward,
+      reward: web3.fromWei(reward, 'ether'),
       solved: solved,
       numVertices: numVertices,
       edges: edges,
       proposer: proposer,
       hashes: [],
       requestedEdges: requestedEdges,
+      submissions: submissions,
       colors: colors
       // mySolution // stored solution for the problem of this client
     };
@@ -63,6 +64,7 @@ angular.module('ZeroKnowledgeProof').factory('graphs', function ($rootScope) {
       GraphColoringProblem.getProposer(taskId),
       GraphColoringProblem.getTreeHashes(taskId),
       GraphColoringProblem.getRequestedEdges(taskId).map(toNumber),
+      GraphColoringProblem.getSubmissionCount(taskId).toNumber(),
       GraphColoringProblem.getSolution(taskId)
     );
   };

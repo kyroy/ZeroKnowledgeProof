@@ -1,34 +1,123 @@
-<header>
-  <div class="navbar-fixed mininav">
-    <nav>
-      <div class="nav-wrapper">
-        <ul>
-          <li>balance: {{graphCtrl.balance}} ether</li>
-        </ul>
+<main>
+  <div class="container" style="max-width: 100%; width: 100%;">
+  <div class="row" style="margin: 0; flex: 1 0 auto;">
+    <!--LEFT NAV-->
+    <div class="col s12 m2" style="padding: 0;">
+      <div class="collection" style="margin: 0;">
+        <a href="" data-ng-click="graphCtrl.insertStubData()" class="collection-item grey white-text">Add Random Graph</a>
+        <a href="" data-ng-show="graphCtrl.graphs.taskIds.length === 0" class="collection-item">No tasks found.</a>
+        <a class="collection-item"
+           data-ng-class="{ active: graphCtrl.currentTaskId === taskId }"
+           data-ng-repeat="taskId in graphCtrl.graphs.taskIds"
+           href=""
+           data-ng-href="#/{{taskId}}">
+          {{taskId}}
+        </a>
       </div>
-    </nav>
-  </div>
-  <nav>
-    <ul id="slide-out" class="side-nav fixed">
-      <li><a href="" data-ng-click="graphCtrl.insertStubData()" style="background-color: lightblue;">Add Random Graph</a></li>
-      <li data-ng-show="graphCtrl.graphs.taskIds.length === 0"><a href="">No tasks found.</a></li>
-      <li data-ng-repeat="taskId in graphCtrl.graphs.taskIds">
-        <a href="" data-ng-href="#/{{taskId}}" data-ng-class="{ active: graphCtrl.currentTaskId === taskId }">{{taskId}}</a>
-      </li>
-    </ul>
-    <div class="nav-wrapper">
-      <a href="#" data-activates="slide-out" class="button-collapse"><i class="mdi-navigation-menu"></i>ASDF</a>
-      <a href="#" class="brand-logo truncate" style="width: 50%;">Graph Coloring Problem {{graphCtrl.currentTaskId}}</a>
-      <ul id="nav-mobile" class="right hide-on-med-and-down">
-        <li data-ng-show="graphCrtl.currentTaskId !== 0 && !graphCtrl.editSolution"><a href="" data-ng-click="graphCtrl.editSolution = true">Propose Solution</a></li>
-        <li data-ng-show="graphCrtl.currentTaskId !== 0 && graphCtrl.editSolution"><a href="" data-ng-click="graphCtrl.proposeSolution()">Send Solution</a></li>
-        <li data-ng-show="graphCtrl.isOwner(graphCtrl.currentTaskId)"><a href="" data-ng-click="graphCtrl.acceptSolution()">Accept Solution</a></li>
-        <li data-ng-show="graphCtrl.isOwner(graphCtrl.currentTaskId)"><a href="" data-ng-click="graphCtrl.rejectSolution()">Reject Solution</a></li>
+    </div>
+    <!--GRAPH-->
+    <div class="graph-container col s12 l8">
+      <div id="graph"></div>
+    </div>
+    <!--RIGHT NAV-->
+    <div class="options-right col s12 l2" style="padding: 0;">
+      <ul class="collapsible" data-collapsible="expandable" style="margin: 0;">
+        <li class="active" data-ng-show="graphCtrl.currentGraph">
+          <div class="collapsible-header active truncate"><i class="material-icons">bubble_chart</i>{{graphCtrl.currentTaskId}}</div>
+          <div class="collapsible-body truncate">
+            <table>
+              <tbody>
+                <tr data-ng-show="graphCtrl.currentGraph.mySolution">
+                  <td colspan="2" class="green-text">
+                    <i class="material-icons">done</i> {{graphCtrl.currentGraph.myTreeHashes.length}} solutions stored
+                  </td>
+                </tr>
+                <tr>
+                  <td>Owner</td>
+                  <td>{{graphCtrl.currentGraph.owner}}</td>
+                </tr>
+                <tr>
+                  <td>Reward</td>
+                  <td>{{graphCtrl.currentGraph.reward}} Ether</td>
+                </tr>
+                <tr>
+                  <td>Vertices</td>
+                  <td>{{graphCtrl.currentGraph.numVertices}}</td>
+                </tr>
+                <tr data-ng-show="graphCtrl.currentGraph.proposer !== '0x0000000000000000000000000000000000000000'">
+                  <td>Proposer</td>
+                  <td>{{graphCtrl.currentGraph.proposer}}</td>
+                </tr>
+                <tr data-ng-show="graphCtrl.currentGraph.proposer !== '0x0000000000000000000000000000000000000000'">
+                  <td>Requested Edges</td>
+                  <td>{{graphCtrl.currentGraph.requestedEdges.length}}</td>
+                </tr>
+                <tr data-ng-show="graphCtrl.currentGraph.proposer !== '0x0000000000000000000000000000000000000000'">
+                  <td>Submissions</td>
+                  <td>{{graphCtrl.currentGraph.submissions}}</td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="row" data-ng-show="graphCrtl.currentTaskId !== 0 && !graphCtrl.editSolution" style="margin-left: 5px; margin-bottom: 5px;">
+              <button class="btn waves-effect waves-light"
+                      data-ng-click="graphCtrl.editSolution = true">
+                Propose Solution
+              </button>
+            </div>
+            <div class="row" data-ng-show="graphCrtl.currentTaskId !== 0 && graphCtrl.editSolution" style="margin-left: 5px; margin-bottom: 5px;">
+              <button class="btn waves-effect waves-light"
+                      data-ng-click="graphCtrl.proposeSolution()">
+                Send Solution
+              </button>
+            </div>
+            <div class="row" data-ng-show="graphCtrl.isOwner(graphCtrl.currentTaskId)" style="margin-left: 5px; margin-bottom: 5px;">
+              <button class="btn waves-effect waves-light"
+                      data-ng-click="graphCtrl.acceptSolution()">
+                Accept Solution
+              </button>
+            </div>
+            <div class="row" data-ng-show="graphCtrl.isOwner(graphCtrl.currentTaskId)" style="margin-left: 5px; margin-bottom: 5px;">
+              <button class="btn red waves-effect waves-light"
+                      data-ng-click="graphCtrl.rejectSolution()">
+                Reject Solution
+              </button>
+            </div>
+          </div>
+        </li>
+        <li>
+          <div class="collapsible-header"><i class="material-icons">add_location</i>New Graph</div>
+          <div class="collapsible-body">
+            <!-- NEW GRAPH FORM -->
+            <form>
+              <div class="row">
+                <div class="input-field col s10 offset-s1">
+                  <input id="vertices" type="number" data-ng-model="graphCtrl.newGraphVertices" min="1" class="validate">
+                  <label for="vertices" data-error="Number greater than 1">Vertices</label>
+                </div>
+              </div>
+              <div class="row">
+                <div class="input-field col s10 offset-s1">
+                  <input id="density" type="number" data-ng-model="graphCtrl.newGraphDensity" min="0" max="1" step="0.1" class="validate">
+                  <label for="density" data-error="Number between 0 and 1">Density</label>
+                </div>
+              </div>
+              <div class="row" style="margin-bottom: 15px;">
+                <div class="input-field col s10 offset-s1">
+                  <button class="btn waves-effect waves-light" type="submit" data-ng-click="graphCtrl.newGraphSubmit()" name="action">Submit
+                    <i class="material-icons right">send</i>
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </li>
       </ul>
     </div>
-  </nav>
-</header>
-<main>
-  <div id="graph"></div>
+  </div>
   <script type="text/javascript" src="js/lib/cytoscape.min.js"></script>
 </main>
+<script type="text/javascript">
+  $(document).ready(function(){
+    $('.collapsible').collapsible();
+  });
+</script>

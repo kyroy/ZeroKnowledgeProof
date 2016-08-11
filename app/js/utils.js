@@ -1,3 +1,4 @@
+/* global Materialize */
 import {web3} from '../../contract/GraphColoringProblem.sol';
 
 function leftPad (nr, n, str) {
@@ -162,4 +163,31 @@ export function hexToBinary (s) {
 
 export function toNumber (x) {
   return x.toNumber();
+}
+
+/**
+ * @param {String} message - Error Message
+ * @param {Number} [delay] - (optional) Time the message is shown
+ */
+export function showError (message, delay) {
+  delay = delay || 7000;
+  Materialize.toast(message, delay, 'red');
+}
+
+/**
+ * @param {String} message - Warning Message
+ * @param {Number} [delay] - (optional) Time the message is shown
+ */
+export function showWarning (message, delay) {
+  delay = delay || 7000;
+  Materialize.toast(message, delay, 'orange');
+}
+
+/**
+ * @param {String} message - Error Message
+ * @param {Number} [delay] - (optional) Time the message is shown
+ */
+export function showSuccess (message, delay) {
+  delay = delay || 7000;
+  Materialize.toast(message, delay, 'green');
 }
