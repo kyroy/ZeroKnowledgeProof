@@ -53,6 +53,8 @@ contract TaskPool {
         return taskId;
     }
 
+    // TODO function to close a task
+
     /* Needed when gas costs get too high -> new variables need to be added
     function openTask (bytes32 taskId) public {
         if (msg.sender != tasks[taskId].owner || tasks[taskId].open) {

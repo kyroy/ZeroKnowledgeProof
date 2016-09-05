@@ -461,7 +461,7 @@ describe('GraphColoringProblem', function () {
     // });
   });
 
-  describe('size tests', function () {
+  describe.skip('size tests', function () {
     function insertRandomGraph (size, density) {
       let edges = getRandomHexAdjacencyMatrix(size, density);
       GraphColoringProblem.createGraph(size, edges,

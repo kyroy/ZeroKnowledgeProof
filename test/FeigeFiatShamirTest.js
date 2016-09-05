@@ -53,9 +53,13 @@ describe('FeigeFiatShamir', function () {
   }
   console.log('s', s, '(coprimes)');
   console.log('v', v);
-  let r = parseInt(Math.random() * v);
+  let r = [];
+  let x = [];
+  for (let i = 0 ; i < s.length; i++) {
+    r.push(parseInt(Math.random() * v[i]));
+    x.push((s[i] * r[i] * r[i]) % n);
+  }
   console.log('r', r);
-  let x = (s * r * r) % n;
   console.log('x', x);
 
   describe('general', function () {
@@ -69,7 +73,7 @@ describe('FeigeFiatShamir', function () {
         done();
       });
 
-      FeigeFiatShamir.register(n, v, { from: account1 });
+      FeigeFiatShamir.register(n, v[0], { from: account1 });
     });
 
     let authId;
@@ -77,7 +81,7 @@ describe('FeigeFiatShamir', function () {
 
     it('should approve an authentication step 1/2', (done) => {
       assert.doesNotThrow(() => {
-        FeigeFiatShamir.startAuthentication(keyId, x, { from: account1 });
+        FeigeFiatShamir.startAuthentication(keyId, x[0], { from: account1 });
       });
       let filter = FeigeFiatShamir.AuthenticationStarted({});
       filter.watch((_, result) => {
@@ -91,10 +95,10 @@ describe('FeigeFiatShamir', function () {
     });
 
     it('should approve an authentication step 2/2', (done) => {
-      let y = r * Math.pow(s, e[0]);
+      let y = r * Math.pow(s[0], e[0]);
       console.log('y', y);
       console.log('((y * y) % key.v', (y * y) % v);
-      console.log('(auth.x * key.v**auth.e[0]) % key.v', (x * Math.pow(v, e[0])) % v);
+      console.log('(auth.x * key.v**auth.e[0]) % key.v', (x[0] * Math.pow(v[0], e[0])) % v);
       assert.doesNotThrow(() => {
         FeigeFiatShamir.finishAuthentication(authId, y, { from: account1 });
       });
