@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 
-# Script to bruteforce y with publically know information
-# for the Feige Fiat Shamir protocol
+# Script to bruteforce y with publically known information for the Feige Fiat Shamir protocol
 
 # Spreadsheet https://docs.google.com/spreadsheets/d/1wtzhlLl6K9RNLHLhRvxMCz6xicukL-YI5hFOmL4U1Mo
 
