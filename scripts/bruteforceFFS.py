@@ -11,7 +11,7 @@ parser = argparse.ArgumentParser(description = 'Bruteforce y for Feige Fiat Sham
 
 #-n RING -e EXPECTED
 parser.add_argument("-n", "--n", default = 84436625, help="public n for modulo ring", type=int)
-parser.add_argument("-e", "--expected", default = 81870125, help="expected value (x*v_i^e_i)", type=int)
+parser.add_argument("-e", "--expected", default = 39778375, help="expected value (x*v_i^e_i)", type=int)
 
 args = parser.parse_args()
 
