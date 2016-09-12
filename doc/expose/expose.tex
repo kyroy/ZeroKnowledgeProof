@@ -1,4 +1,4 @@
-\documentclass[a4paper]{scrartcl}
+\documentclass[a4paper,parskip=half]{scrartcl}
 
 \usepackage[english]{babel}
 \usepackage[T1]{fontenc}
@@ -46,7 +46,9 @@
 
 \section{Zero-Knowledge Proofs}
 
-
+Usually, proving the knowledge of a solution for a problem requires the disclosure of the solution itself, or at least parts of it.
+Goldwasser, Micali and Rackoff define zero-knowledge proofs ``as those proofs that convey no additional knowledge other than the correctness of the proposition in question''~\cite{goldwasser1989knowledge}, here the knowledge of a solution.
+Most of the existing zero-knowledge proofs are interactive, meaning they are protocols between two parties, where the \emph{prover} tries to convince the \emph{verifier}.
 
 \begin{itemize}
 \item first proposed - Goldwasser, Micali and Rackoff \cite{goldwasser1989knowledge}
