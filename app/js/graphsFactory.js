@@ -101,6 +101,7 @@ angular.module('ZeroKnowledgeProof').factory('graphs', function ($rootScope) {
     if (typeof graph !== 'undefined') {
       graph.proposer = result.args.proposer;
       graph.hashes = result.args.hashes;
+      $rootScope.$apply();
     }
   });
   // event SolutionRequestedEdge(bytes32 indexed taskId, uint edge);
@@ -110,6 +111,9 @@ angular.module('ZeroKnowledgeProof').factory('graphs', function ($rootScope) {
     let graph = graphs.list.find(function (elem) {
       return result.args.taskId === elem.taskId;
     });
+    if (typeof graph !== 'undefined') {
+      graph.requestedEdges = result.args.edges.map(toNumber);
+    }
     if (typeof graph !== 'undefined' && typeof graph.mySolution !== 'undefined') {
       // send all missing submissions
       for (let i = result.args.submissions.toNumber(); i < result.args.edges.length; i++) {
@@ -146,6 +150,20 @@ angular.module('ZeroKnowledgeProof').factory('graphs', function ($rootScope) {
           console.error('graphsFactory: answer for requested edge failed', e);
         }
       }
+    }
+  });
+  // event SolutionSubmittedColors(bytes32 indexed taskId, uint color1, uint nonce1,
+  //                               uint color2, uint nonce2);
+  let eventSolutionSubmittedColors = GraphColoringProblem.SolutionSubmittedColors({});
+  eventSolutionSubmittedColors.watch((_, result) => {
+    console.log('eventSolutionSubmittedColors', result.args);
+    let graph = graphs.list.find(function (elem) {
+      return result.args.taskId === elem.taskId;
+    });
+    let submission = result.args.submission.toNumber();
+    if (typeof graph !== 'undefined' && graph.submissions < submission) {
+      graph.submissions = submission;
+      $rootScope.$apply();
     }
   });
   // event SolutionAccepted(bytes32 indexed taskId, address proposer);
@@ -189,8 +207,8 @@ angular.module('ZeroKnowledgeProof').factory('graphs', function ($rootScope) {
       result.args.a, result.args.i.toNumber(), result.args.b);
   });
 
-  // $scope.$on('$destroy', function () {
-  //   console.log('destroy $scope');
+  // $rootScope.$on('$destroy', function () {
+  //   console.log('destroy $rootScope');
   //   eventTaskCreated.stopWatching();
   //   eventSolutionProposed.stopWatching();
   //   eventSolutionRequestedEdge.stopWatching();
