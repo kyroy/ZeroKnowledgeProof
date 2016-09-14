@@ -25,7 +25,7 @@
     urlcolor=blue%black
 }
 
-\title{Zero-Knowledge Proofs on the Ethereum blockchain}
+\title{Zero-Knowledge Proofs on the Ethereum Blockchain}
 \subtitle{Exposé for Master Thesis}
 \author{Dennis Kuhnert}
 \date{\today}
@@ -43,35 +43,42 @@
 \begin{document}
 \maketitle
 
-
-\section{Zero-Knowledge Proofs}
-
 Usually, proving the knowledge of a solution for a problem requires the disclosure of the solution itself, or at least parts of it.
 Goldwasser, Micali and Rackoff define zero-knowledge proofs ``as those proofs that convey no additional knowledge other than the correctness of the proposition in question''~\cite{goldwasser1989knowledge}, here the knowledge of a solution.
-Most of the existing zero-knowledge proofs are interactive, meaning they are protocols between two parties, where the \emph{prover} tries to convince the \emph{verifier} by responding to challenges the verifier formulates to encoded solutions of the prover.
+Most of the existing zero-knowledge proofs are interactive, meaning they are protocols between two parties, where the \emph{prover} tries to convince the \emph{verifier} by responding to challenges the verifier formulates for encoded solutions of the prover\todo{split up}.
 Since this method is mostly no guarantee of the prover's claim, this process may be repeated multiple times to significantly reduce the chance that the prover is trying to cheat.
 
+Ethereum is a decentralized platform where smart contracts can be executed.
+By validating the input, different actions are possible.
+So a solution for a problem can be verified before the proposer is being paid.
+But to do so, data is stored in the blockchain and you also have to pass the solution to it.
+This means, that the data is publicly available and can be (mis)used by everyone.
+Especially when considering the proof of identity, you do not want to send the required information to a public channel.
+This is where zero-knowledge proofs can be used to keep privacy and ensure security.
+
+In this thesis, I will validate the possibility of implementing different zero-knowledge proofs on the Ethereum blockchain.
+This includes protocols, like the Feige-Fiat-Shamir identification scheme \cite{feige1988zero}, a well-known zero-knowledge proof that uses modular arithmetic, as well as 
+ring signatures which are stated as ``extremely promising for both token anonymization and identity applications'' \cite{buterin2015public} by Vitalik Buterin, the creator of Ethereum.
+Moreover, I will look closely at the existing zero-knowledge proof by Goldwasser, Micali and Rackoff \cite{goldreich1991proofs} for the NP-complete graph 3-coloring problem, thus the zero-knowledge proofs for all problems in NP.
+
+implementation: validate possibility, security \dots
+
+give templates?
+
 \begin{itemize}
-\item first proposed - Goldwasser, Micali and Rackoff \cite{goldwasser1989knowledge}
-\item motivation
-	\begin{itemize}
-	\item public data
-	\end{itemize}
 \item related work
 	\begin{itemize}
-	\item vitalik buterin \cite{buterin2015public}
-	\item interesting topic, ppl try to develop new software (--addons-- to ethereum)
+	\item interesting topic, ppl develop new software
 	\end{itemize}
 \item plan
 	\begin{itemize}
 	\item reference implementations, like 3 coloring problem
-	\item implement Feige-Fiat-Shamir -> see if secure - Raffo and Kizza \cite{raffo2002digital, kizza2010feige}
+	\item ring signatures \cite{buterin2015public}
+	\item implement Feige-Fiat-Shamir \cite{feige1988zero} -> see if secure - Raffo and Kizza \cite{raffo2002digital, kizza2010feige}
 	\item NOT to solve/develop new zero-knowledge proofs
 	\item interactive zkp
 	\end{itemize}
 \end{itemize}
-
-\section{Related Work}
 
 \bibliographystyle{alpha}
 \bibliography{../references}
