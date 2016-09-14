@@ -51,9 +51,9 @@ Since this method is mostly no guarantee of the prover's claim, this process may
 Ethereum is a decentralized platform where smart contracts can be executed.
 By validating the input, different actions are possible.
 So a solution for a problem can be verified before the proposer is being paid.
-But to do so, data is stored in the blockchain and you also have to pass the solution to it.
+But to do so, data is stored in the blockchain and the solution has also to be passed.
 This means, that the data is publicly available and can be (mis)used by everyone.
-Especially when considering the proof of identity, you do not want to send the required information to a public channel.
+Especially when considering the proof of identity, the required secret information for the authentication should not be send to a public channel.
 This is where zero-knowledge proofs can be used to keep privacy and ensure security.
 
 In this thesis, I will validate the possibility of implementing different zero-knowledge proofs on the Ethereum blockchain.
@@ -73,7 +73,6 @@ give templates?
 \item plan
 	\begin{itemize}
 	\item reference implementations, like 3 coloring problem
-	\item ring signatures \cite{buterin2015public}
 	\item implement Feige-Fiat-Shamir \cite{feige1988zero} -> see if secure - Raffo and Kizza \cite{raffo2002digital, kizza2010feige}
 	\item NOT to solve/develop new zero-knowledge proofs
 	\item interactive zkp
