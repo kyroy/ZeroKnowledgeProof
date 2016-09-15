@@ -25,7 +25,7 @@
     urlcolor=blue%black
 }
 
-\title{Zero-Knowledge Proofs on the Ethereum Blockchain}
+\title{Evaluating Zero-Knowledge Proofs on the Ethereum Blockchain\todo{determine title of thesis}}
 \subtitle{Exposé for Master Thesis}
 \author{Dennis Kuhnert}
 \date{\today}
@@ -45,7 +45,7 @@
 
 Usually, proving the knowledge of a solution for a problem requires the disclosure of the solution itself, or at least parts of it.
 Goldwasser, Micali and Rackoff define zero-knowledge proofs ``as those proofs that convey no additional knowledge other than the correctness of the proposition in question''~\cite{goldwasser1989knowledge}, here the knowledge of a solution.
-Most of the existing zero-knowledge proofs are interactive, meaning they are protocols between two parties, where the \emph{prover} tries to convince the \emph{verifier} by responding to challenges the verifier formulates for encoded solutions of the prover\todo{split up}.
+Most of the existing zero-knowledge proofs are interactive, meaning they are protocols between two parties, where the \emph{prover} tries to convince the \emph{verifier} by responding to challenges the verifier formulates for encoded solutions of the prover\todo{split up?}.
 Since this method is mostly no guarantee of the prover's claim, this process may be repeated multiple times to significantly reduce the chance that the prover is trying to cheat.
 
 Ethereum is a decentralized platform where smart contracts can be executed.
@@ -61,22 +61,21 @@ This includes protocols, like the Feige-Fiat-Shamir identification scheme \cite{
 ring signatures which are stated as ``extremely promising for both token anonymization and identity applications'' \cite{buterin2015public} by Vitalik Buterin, the creator of Ethereum.
 Moreover, I will look closely at the existing zero-knowledge proof by Goldreich, Micali and Wigderson \cite{goldreich1991proofs} for the NP-complete graph 3-coloring problem, thus the zero-knowledge proofs for all problems in NP.
 
-implementation: validate possibility, security \dots
+Since zero-knowledge proofs differ for every use case, implementations need to be analyzed regarding the possibility to realize them on the Ethereum blockchain.
+This is caused by the limitation of smart contracts in resources, like data types and computational power.
+Most zero-knowledge proofs use complex mathematical operations and large numbers to make it unfeasible to guess the private information (same concept as modern cryptography), what may lead to implementation problems.
+Considering that the goal of these protocols is the security of information, one of the main aspects of the thesis will be security and possible attacks on the implementations.
+Furthermore, similarities between different implementations may be discovered and lead to more general, abstract contracts which can be used by future proofs.
+Thus, the understandability and security would be increased and of course the difficulty for new implementations and developers decreases.
 
-give templates?
-
+\section*{Notes}
 \begin{itemize}
-\item related work
-	\begin{itemize}
-	\item interesting topic, ppl develop new software
-	\end{itemize}
-\item plan
-	\begin{itemize}
-	\item reference implementations, like 3 coloring problem
-	\item implement Feige-Fiat-Shamir \cite{feige1988zero} -> see if secure - Raffo and Kizza \cite{raffo2002digital, kizza2010feige}
-	\item NOT to solve/develop new zero-knowledge proofs
-	\item interactive zkp
-	\end{itemize}
+\item interesting topic, ppl develop new software
+\item reference implementations, like 3 coloring problem
+\item implement Feige-Fiat-Shamir \cite{feige1988zero} -> see if secure - Raffo and Kizza \cite{raffo2002digital, kizza2010feige}
+\item NOT to solve/develop new zero-knowledge proofs
+\item non-interactive ZKPs?
+\item BC as a prover?
 \end{itemize}
 
 \bibliographystyle{alpha}
